@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -17,7 +18,13 @@ import {
   Building,
   Eye,
   Filter,
-  Download
+  Download,
+  DollarSign,
+  Clock,
+  Shield,
+  Lightbulb,
+  FileText,
+  Percent
 } from "lucide-react";
 import { 
   ChartContainer,
@@ -35,21 +42,29 @@ import {
   PieChart, 
   Pie, 
   Cell, 
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ScatterChart,
-  Scatter,
   ResponsiveContainer
 } from "recharts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mockPersonas } from "@/data/mockPersonas";
 
+interface PersonaInsight {
+  personaId: string;
+  personaName: string;
+  primaryDecisionKPI: string;
+  firstLookSentiment: number;
+  netPersuasionShift: number;
+  adoptionLikelihood: number;
+  adoptionWindow: string;
+  acceptableMDRUplift: string;
+  topBarrier: string;
+  proofRequirement: string;
+  mustWinFeature: string;
+  oneLiner: string;
+}
+
 export default function InsightsDashboard() {
-  const [selectedCategory, setSelectedCategory] = useState<'psychographic' | 'decision' | 'firmographic'>('psychographic');
   const [selectedSimulation, setSelectedSimulation] = useState<string>('SIM001');
+  const [activeTab, setActiveTab] = useState<'personas' | 'portfolio'>('personas');
   
   // Mock simulation data with selected personas
   const simulations = [
@@ -82,217 +97,163 @@ export default function InsightsDashboard() {
     }
   ];
 
-  // Generate dynamic simulation data based on selected personas
-  const getSimulationData = (simId: string) => {
+  // Generate Layer A: Persona-Level Insights based on simulation results
+  const generatePersonaInsights = (simId: string): PersonaInsight[] => {
     const simulation = simulations.find(sim => sim.id === simId);
-    if (!simulation) return null;
+    if (!simulation) return [];
 
-    // Get selected personas for this simulation
     const selectedPersonas = simulation.selectedPersonaIds.map(id => 
       mockPersonas.find(p => p.id === id)
     ).filter(Boolean);
 
-    // Generate heat map data based on selected personas
-    const heatMapData = selectedPersonas.map(persona => {
-      // Generate sentiment based on persona characteristics
-      let sentiment = Math.random() * 2 - 1; // -1 to 1
+    return selectedPersonas.map(persona => {
+      // Generate realistic data based on persona characteristics
+      const baseScore = Math.random() * 0.4 + 0.3; // 0.3 to 0.7
+      const riskAdjustment = persona.psychographicProfile?.riskAppetite === 'High' ? 0.2 : 
+                           persona.psychographicProfile?.riskAppetite === 'Low' ? -0.2 : 0;
+      const speedAdjustment = persona.decisionMakingStyle?.decisionSpeed === 'Immediate' ? 0.15 : 
+                            persona.decisionMakingStyle?.decisionSpeed === 'Deliberate' ? -0.15 : 0;
       
-      // Adjust sentiment based on persona traits
-      if (persona.psychographicProfile?.riskAppetite === 'High') sentiment += 0.3;
-      if (persona.psychographicProfile?.riskAppetite === 'Low') sentiment -= 0.3;
-      if (persona.decisionMakingStyle?.decisionSpeed === 'Immediate') sentiment += 0.2;
-      if (persona.decisionMakingStyle?.decisionSpeed === 'Deliberate') sentiment -= 0.2;
+      const firstLookSentiment = Math.min(1, Math.max(-1, baseScore + riskAdjustment));
+      const netPersuasionShift = Math.random() * 0.4 - 0.1; // -0.1 to 0.3
+      const adoptionLikelihood = Math.round((firstLookSentiment + 1) * 5); // 1-10 scale
       
-      // Clamp to [-1, 1]
-      sentiment = Math.max(-1, Math.min(1, sentiment));
+      const kpiOptions = ['Checkout Conversion', 'Cost Efficiency', 'Compliance', 'Cash-Flow'];
+      const primaryDecisionKPI = kpiOptions[Math.floor(Math.random() * kpiOptions.length)];
       
-      const color = sentiment > 0.3 ? 'success' : sentiment < -0.3 ? 'destructive' : 'warning';
+      const barriers = ['Cost', 'Compliance Proof', 'Integration Time', 'Chargeback Risk', 'None'];
+      const topBarrier = barriers[Math.floor(Math.random() * barriers.length)];
       
-      // Generate objection based on persona fears and motivations
-      const objections = {
-        'PaymentFailureLoss': 'Worried about checkout reliability',
-        'CashFlowCrunch': 'Need faster settlement cycles',
-        'IntegrationOverhead': 'Concerned about implementation effort',
-        'RegulatoryNonCompliance': 'Need compliance validation first',
-        'ChargebackPenalty': 'Risk of increased disputes',
-        'BrandReputationDamage': 'Brand safety concerns'
-      };
+      const proofOptions = ['Case study only', 'Dashboard pilot', 'Full audit', 'No proof needed'];
+      const proofRequirement = proofOptions[Math.floor(Math.random() * proofOptions.length)];
       
-      const objection = objections[persona.psychographicProfile?.dominantFear] || 
-                       'Evaluating against other options';
-
+      const features = ['AI Retry Routing', 'Magic Checkout', 'Risk Engine', 'Multi-currency'];
+      const mustWinFeature = features[Math.floor(Math.random() * features.length)];
+      
+      const mdrUplift = Math.floor(Math.random() * 8) + 1;
+      const adoptionWindows = ['Within 30 days', 'Within 90 days', 'Within 6 months', 'Over 6 months'];
+      const adoptionWindow = adoptionWindows[Math.floor(Math.random() * adoptionWindows.length)];
+      
       return {
-        persona: persona.name,
-        sentiment: Number(sentiment.toFixed(2)),
-        objection,
-        color
+        personaId: persona.id,
+        personaName: persona.name,
+        primaryDecisionKPI,
+        firstLookSentiment: Number(firstLookSentiment.toFixed(2)),
+        netPersuasionShift: Number(netPersuasionShift.toFixed(2)),
+        adoptionLikelihood,
+        adoptionWindow,
+        acceptableMDRUplift: `≤ +${mdrUplift} bps`,
+        topBarrier: topBarrier === 'Cost' ? 'None (cost offset by CVR gain)' : topBarrier,
+        proofRequirement,
+        mustWinFeature,
+        oneLiner: `${persona.name} will adopt ${adoptionWindow.toLowerCase()} if MDR delta ≤${mdrUplift} bps and sees proven uplift.`
       };
     });
+  };
 
-    // Generate objection clusters from heat map data
-    const objectionCategories = {
-      'Cost': ['Price', 'fees', 'cost', 'expensive'],
-      'Compliance': ['compliance', 'regulation', 'audit', 'security'],
-      'Integration': ['integration', 'implementation', 'technical'],
-      'Risk': ['risk', 'chargeback', 'fraud', 'reliability'],
-      'Features': ['feature', 'functionality', 'capability']
-    };
+  // Layer B: Portfolio Summary Analytics
+  const generatePortfolioSummary = (personaInsights: PersonaInsight[]) => {
+    // 1. Decision KPI Prevalence
+    const kpiCounts = personaInsights.reduce((acc, insight) => {
+      acc[insight.primaryDecisionKPI] = (acc[insight.primaryDecisionKPI] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const kpiPrevalence = Object.entries(kpiCounts).map(([kpi, count]) => ({
+      kpi,
+      percentage: Math.round((count / personaInsights.length) * 100),
+      personas: count
+    })).sort((a, b) => b.percentage - a.percentage);
 
-    const objectionClusters = Object.entries(objectionCategories).map(([category, keywords]) => {
-      const count = heatMapData.filter(item => 
-        keywords.some(keyword => 
-          item.objection.toLowerCase().includes(keyword.toLowerCase())
-        )
-      ).length;
-      return {
-        category,
-        count,
-        percentage: Math.round((count / heatMapData.length) * 100)
-      };
-    }).filter(cluster => cluster.count > 0);
+    // 2. Price Elasticity Bands
+    const mdrBands = personaInsights.reduce((acc, insight) => {
+      const mdr = parseInt(insight.acceptableMDRUplift.match(/\d+/)?.[0] || '0');
+      if (mdr <= 3) acc['0-3 bps']++;
+      else if (mdr <= 6) acc['4-6 bps']++;
+      else acc['7 bps+']++;
+      return acc;
+    }, { '0-3 bps': 0, '4-6 bps': 0, '7 bps+': 0 });
 
-    // Generate adoption funnel from sentiment data
-    const likely = heatMapData.filter(item => item.sentiment > 0.3).length;
-    const maybe = heatMapData.filter(item => item.sentiment >= -0.3 && item.sentiment <= 0.3).length;
-    const unlikely = heatMapData.filter(item => item.sentiment < -0.3).length;
-    const total = heatMapData.length;
+    const priceElasticity = Object.entries(mdrBands).map(([band, count]) => ({
+      band,
+      personas: count,
+      share: Math.round((count / personaInsights.length) * 100)
+    }));
+
+    // 3. Barrier Frequency
+    const barrierCounts = personaInsights.reduce((acc, insight) => {
+      const barrier = insight.topBarrier.includes('None') ? 'Cost' : insight.topBarrier;
+      acc[barrier] = (acc[barrier] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const barrierFrequency = Object.entries(barrierCounts).map(([barrier, count]) => ({
+      barrier,
+      incidence: Math.round((count / personaInsights.length) * 100)
+    })).sort((a, b) => b.incidence - a.incidence);
+
+    // 4. Evidence Elasticity
+    const evidenceElasticity = [
+      { tier: 'Case Study', avgSentimentDelta: '+0.18' },
+      { tier: 'Dashboard Pilot', avgSentimentDelta: '+0.31' },
+      { tier: 'Full Audit', avgSentimentDelta: '+0.07' }
+    ];
+
+    // 5. Persona Clusters
+    const clusters = [
+      { 
+        cluster: 'UPI-Heavy / Conversion-Led', 
+        count: 5, 
+        keyHandle: '"Show the lift, keep fees ≤ 4 bps."', 
+        quickWin: 'Offer Magic Checkout A/B trial.' 
+      },
+      { 
+        cluster: 'Card-Heavy / Compliance-Centric', 
+        count: 4, 
+        keyHandle: '"Need audit first, fee second."', 
+        quickWin: 'Pre-package PCI & RBI cert bundle.' 
+      },
+      { 
+        cluster: 'FX / Cross-Border', 
+        count: 3, 
+        keyHandle: '"FX cost & chargebacks."', 
+        quickWin: 'Highlight spread savings + dispute API.' 
+      },
+      { 
+        cluster: 'Cost-Fixated Mid-Market', 
+        count: 4, 
+        keyHandle: '"Every bps counts."', 
+        quickWin: 'Volume-based rebate table up-front.' 
+      }
+    ];
 
     return {
-      heatMapData,
-      objectionClusters,
-      adoptionFunnel: {
-        total,
-        likely: { count: likely, percentage: Math.round((likely / total) * 100), threshold: '>0.3' },
-        maybe: { count: maybe, percentage: Math.round((maybe / total) * 100), threshold: '-0.3 to 0.3' },
-        unlikely: { count: unlikely, percentage: Math.round((unlikely / total) * 100), threshold: '<-0.3' }
-      }
+      kpiPrevalence,
+      priceElasticity,
+      barrierFrequency,
+      evidenceElasticity,
+      clusters
     };
   };
 
-  // Enhanced mock data with detailed category analysis
-  const mockData = {
-    overallSentiment: {
-      positive: 62,
-      neutral: 23, 
-      negative: 15
-    },
-    avgScore: 74,
-    totalSimulations: 47,
-    
-    // Psychographic Analysis
-    psychographicInsights: {
-      dominantFears: [
-        { fear: "PaymentFailureLoss", personas: 6, avgSentiment: 45, intensity: "high" },
-        { fear: "CashFlowCrunch", personas: 5, avgSentiment: 38, intensity: "high" },
-        { fear: "IntegrationOverhead", personas: 3, avgSentiment: 55, intensity: "medium" },
-        { fear: "RegulatoryNonCompliance", personas: 2, avgSentiment: 32, intensity: "high" }
-      ],
-      motivations: [
-        { motivation: "CheckoutConversionBoost", personas: 8, avgSentiment: 78, resonance: "strong" },
-        { motivation: "FasterSettlement", personas: 6, avgSentiment: 72, resonance: "strong" },
-        { motivation: "WorkingCapitalAccess", personas: 4, avgSentiment: 65, resonance: "medium" },
-        { motivation: "MultiPaymentCoverage", personas: 3, avgSentiment: 58, resonance: "medium" }
-      ],
-      cognitivePatterns: [
-        { pattern: "LossAversionHigh", prevalence: 45, positiveResponse: 35 },
-        { pattern: "SocialProofReliance", prevalence: 38, positiveResponse: 68 },
-        { pattern: "StatusQuoBias", prevalence: 32, positiveResponse: 28 },
-        { pattern: "OptimismBias", prevalence: 25, positiveResponse: 72 }
-      ]
-    },
-    
-    // Decision Making Analysis
-    decisionStyleInsights: {
-      processingStyles: [
-        { style: "DataDriven", count: 7, avgScore: 82, conversionRate: 71 },
-        { style: "Intuitive", count: 5, avgScore: 68, conversionRate: 45 },
-        { style: "Hybrid", count: 4, avgScore: 75, conversionRate: 58 }
-      ],
-      decisionSpeed: [
-        { speed: "Immediate", personas: 2, successRate: 85, concerns: ["Limited analysis"] },
-        { speed: "Rapid", personas: 6, successRate: 72, concerns: ["Integration complexity"] },
-        { speed: "Standard", personas: 5, successRate: 68, concerns: ["Cost validation"] },
-        { speed: "Deliberate", personas: 3, successRate: 78, concerns: ["Security audit"] }
-      ],
-      proofRequirements: [
-        { requirement: "CaseStudyBenchmark", personas: 8, satisfaction: 75 },
-        { requirement: "DashboardMetricsReview", personas: 6, satisfaction: 68 },
-        { requirement: "PilotIntegration", personas: 4, satisfaction: 82 },
-        { requirement: "FullSecurityAudit", personas: 2, satisfaction: 90 }
-      ]
-    },
-    
-    // Firmographic Analysis
-    firmographicInsights: {
-      companySize: [
-        { size: "MicroStartup_<10", count: 4, avgSentiment: 85, topConcern: "Cost" },
-        { size: "Small_10-50", count: 6, avgSentiment: 72, topConcern: "Integration" },
-        { size: "Growth_50-200", count: 4, avgSentiment: 68, topConcern: "Scalability" },
-        { size: "ScaleUp_200-1K", count: 2, avgSentiment: 75, topConcern: "Compliance" }
-      ],
-      industries: [
-        { industry: "D2C_Ecommerce", personas: 5, sentiment: 78, adoptionRate: 72 },
-        { industry: "SaaS_Software", personas: 4, sentiment: 75, adoptionRate: 68 },
-        { industry: "FinTech_NBFC", personas: 3, sentiment: 65, adoptionRate: 58 },
-        { industry: "EdTech", personas: 2, sentiment: 72, adoptionRate: 65 },
-        { industry: "Gaming", personas: 2, sentiment: 82, adoptionRate: 75 }
-      ],
-      fundingStage: [
-        { stage: "Bootstrapped", count: 4, riskAppetite: "Low", avgScore: 65 },
-        { stage: "Seed", count: 5, riskAppetite: "Medium", avgScore: 72 },
-        { stage: "Series_A-B", count: 4, riskAppetite: "Medium", avgScore: 78 },
-        { stage: "Series_C-D", count: 3, riskAppetite: "High", avgScore: 75 }
-      ]
-    },
-    
-    // Cross-category insights
-    crossCategoryInsights: [
-      {
-        title: "Fear-driven personas prefer gradual rollouts",
-        description: "Personas with high loss aversion show 40% better adoption when offered pilot integration options",
-        impact: "high",
-        categories: ["psychographic", "decision"]
-      },
-      {
-        title: "FinTech companies demand stronger proof",
-        description: "Regulated industries require 2.3x more validation steps before commitment",
-        impact: "medium", 
-        categories: ["firmographic", "decision"]
-      },
-      {
-        title: "Growth-stage companies prioritize speed",
-        description: "Series A-B startups show 35% preference for rapid deployment over thorough evaluation",
-        impact: "high",
-        categories: ["firmographic", "psychographic"]
-      }
-    ]
-  };
+  const currentSimulation = simulations.find(sim => sim.id === selectedSimulation) || simulations[0];
+  const personaInsights = generatePersonaInsights(selectedSimulation);
+  const portfolioSummary = generatePortfolioSummary(personaInsights);
 
   const chartConfig = {
-    sentiment: {
-      label: "Sentiment",
+    percentage: {
+      label: "Percentage",
       color: "hsl(var(--primary))",
     },
     personas: {
       label: "Personas",
       color: "hsl(var(--secondary))",
     },
-    positive: {
-      label: "Positive",
+    sentiment: {
+      label: "Sentiment",
       color: "hsl(var(--success))",
-    },
-    negative: {
-      label: "Negative", 
-      color: "hsl(var(--destructive))",
-    },
-    neutral: {
-      label: "Neutral",
-      color: "hsl(var(--muted-foreground))",
     }
   };
-
-  const currentSimulation = simulations.find(sim => sim.id === selectedSimulation) || simulations[0];
-  const simulationData = getSimulationData(selectedSimulation);
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -302,7 +263,7 @@ export default function InsightsDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Insights Dashboard</h1>
             <p className="text-muted-foreground mt-1">
-              Per-simulation behavioral analysis and sentiment insights
+              Comprehensive persona-level insights and portfolio analytics from simulation results
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -354,505 +315,349 @@ export default function InsightsDashboard() {
           </CardContent>
         </Card>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="hover-scale">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                 <div>
-                   <p className="text-2xl font-bold">{currentSimulation.avgScore}</p>
-                   <p className="text-sm text-muted-foreground">Avg Score</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
+        {/* Tab Navigation */}
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="personas" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Layer A: Persona-Level Insights
+            </TabsTrigger>
+            <TabsTrigger value="portfolio" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Layer B: Portfolio Summary
+            </TabsTrigger>
+          </TabsList>
 
-           <Card className="hover-scale">
-             <CardContent className="p-6">
-               <div className="flex items-center gap-2">
-                 <Brain className="h-5 w-5 text-primary" />
-                 <div>
-                   <p className="text-2xl font-bold">{currentSimulation.personas}</p>
-                   <p className="text-sm text-muted-foreground">Personas</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
+          {/* Layer A: Persona-Level Insights */}
+          <TabsContent value="personas" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  Persona-Level Insight Template
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Individual persona analysis for {currentSimulation.name}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Persona</TableHead>
+                        <TableHead>Primary Decision KPI</TableHead>
+                        <TableHead>First-Look Sentiment</TableHead>
+                        <TableHead>Net Persuasion Shift</TableHead>
+                        <TableHead>Adoption Likelihood</TableHead>
+                        <TableHead>Adoption Window</TableHead>
+                        <TableHead>Acceptable MDR Uplift</TableHead>
+                        <TableHead>Top Barrier</TableHead>
+                        <TableHead>Proof Requirement</TableHead>
+                        <TableHead>Must-Win Feature</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {personaInsights.map((insight, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{insight.personaName}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {insight.primaryDecisionKPI}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={insight.firstLookSentiment > 0.3 ? 'default' : 
+                                     insight.firstLookSentiment < -0.3 ? 'destructive' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {insight.firstLookSentiment > 0 ? '+' : ''}{insight.firstLookSentiment}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={insight.netPersuasionShift > 0 ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {insight.netPersuasionShift > 0 ? '+' : ''}{insight.netPersuasionShift}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{insight.adoptionLikelihood}</span>
+                              <span className="text-muted-foreground text-xs">/ 10</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {insight.adoptionWindow}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {insight.acceptableMDRUplift}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-32 truncate">{insight.topBarrier}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {insight.proofRequirement}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {insight.mustWinFeature}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
 
-           <Card className="hover-scale">
-             <CardContent className="p-6">
-               <div className="flex items-center gap-2">
-                 <TrendingUp className="h-5 w-5 text-success" />
-                 <div>
-                   <p className="text-2xl font-bold">{simulationData.adoptionFunnel.likely.percentage}%</p>
-                   <p className="text-sm text-muted-foreground">Likely Adopters</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-
-           <Card className="hover-scale">
-             <CardContent className="p-6">
-               <div className="flex items-center gap-2">
-                 <AlertTriangle className="h-5 w-5 text-warning" />
-                 <div>
-                   <p className="text-2xl font-bold">{simulationData.objectionClusters[0].percentage}%</p>
-                   <p className="text-sm text-muted-foreground">Cost Objections</p>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-        </div>
-
-        {/* Simulation-Specific Visualizations */}
-        <div className="grid gap-6">
-          {/* Heat Map */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Persona × Sentiment Heat Map
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {currentSimulation.name} - Individual persona sentiment analysis
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-2">
-                {simulationData.heatMapData.map((item, index) => (
-                  <div 
-                    key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      item.color === 'success' ? 'bg-success/10 border-success/20' :
-                      item.color === 'warning' ? 'bg-warning/10 border-warning/20' :
-                      'bg-destructive/10 border-destructive/20'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{item.persona}</p>
-                        <p className="text-xs text-muted-foreground italic">"{item.objection}"</p>
+            {/* One-liners */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Persona One-Liners
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {personaInsights.map((insight, index) => (
+                    <div key={index} className="p-4 rounded-lg border bg-muted/50">
+                      <div className="flex items-start gap-3">
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {insight.personaId}
+                        </Badge>
+                        <p className="text-sm italic">"{insight.oneLiner}"</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={item.color === 'success' ? 'default' : item.color === 'warning' ? 'secondary' : 'destructive'}
-                        className="text-xs"
-                      >
-                        {item.sentiment > 0 ? '+' : ''}{item.sentiment.toFixed(2)}
-                      </Badge>
-                      <div className={`w-3 h-3 rounded-full ${
-                        item.color === 'success' ? 'bg-success' :
-                        item.color === 'warning' ? 'bg-warning' :
-                        'bg-destructive'
-                      }`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Objection Cluster Chart */}
+          {/* Layer B: Portfolio Summary */}
+          <TabsContent value="portfolio" className="space-y-6">
+            {/* Decision KPI Prevalence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  1. Decision KPI Prevalence
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    {portfolioSummary.kpiPrevalence.map((kpi, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{kpi.kpi}</span>
+                          <span className="text-sm font-bold">{kpi.percentage}%</span>
+                        </div>
+                        <Progress value={kpi.percentage} className="h-2" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-2">Take-away:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Optimising conversion covers nearly half the market; compliance is niche but non-negotiable for those affected.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Price Elasticity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  2. Price Elasticity Bands
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    {portfolioSummary.priceElasticity.map((band, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <p className="font-medium text-sm">{band.band}</p>
+                          <p className="text-xs text-muted-foreground">{band.personas} personas</p>
+                        </div>
+                        <Badge variant="outline" className="text-sm">
+                          {band.share}%
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-2">Take-away:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      A +3 bps ceiling secures 44%; every extra 3 bps drops adoption by ~13 pp.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Barrier Frequency */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-warning" />
-                  Objection Clusters
+                  3. Barrier Frequency
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {simulationData.objectionClusters.map((cluster, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{cluster.category}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {'█'.repeat(Math.ceil(cluster.percentage / 10))}
-                          </span>
-                          <span className="text-sm font-medium">{cluster.percentage}%</span>
-                        </div>
-                      </div>
-                      <Progress value={cluster.percentage} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        {cluster.count} persona{cluster.count !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  ))}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <ChartContainer config={chartConfig} className="h-[300px]">
+                    <BarChart data={portfolioSummary.barrierFrequency}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="barrier" tick={{ fontSize: 10 }} />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="incidence" fill="var(--color-percentage)" />
+                    </BarChart>
+                  </ChartContainer>
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-2">Take-away:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Unit-economics messaging will unlock the largest stuck segment.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Adoption Likelihood Funnel */}
+            {/* Evidence Elasticity */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  Adoption Likelihood Funnel
+                  <Shield className="h-5 w-5 text-primary" />
+                  4. Evidence Elasticity
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <p className="text-lg font-semibold">Persona Set (n={simulationData.adoptionFunnel.total})</p>
-                  </div>
-                  
+                <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-4 text-success">├─</div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">Likely (score {simulationData.adoptionFunnel.likely.threshold})</span>
-                          <span className="text-sm font-bold text-success">
-                            {simulationData.adoptionFunnel.likely.count} ({simulationData.adoptionFunnel.likely.percentage}%)
-                          </span>
-                        </div>
-                        <Progress value={simulationData.adoptionFunnel.likely.percentage} className="h-3" />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="w-4 text-warning">├─</div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">Maybe (score {simulationData.adoptionFunnel.maybe.threshold})</span>
-                          <span className="text-sm font-bold text-warning">
-                            {simulationData.adoptionFunnel.maybe.count} ({simulationData.adoptionFunnel.maybe.percentage}%)
-                          </span>
-                        </div>
-                        <Progress value={simulationData.adoptionFunnel.maybe.percentage} className="h-3" />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="w-4 text-destructive">└─</div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">Unlikely (score {simulationData.adoptionFunnel.unlikely.threshold})</span>
-                          <span className="text-sm font-bold text-destructive">
-                            {simulationData.adoptionFunnel.unlikely.count} ({simulationData.adoptionFunnel.unlikely.percentage}%)
-                          </span>
-                        </div>
-                        <Progress value={simulationData.adoptionFunnel.unlikely.percentage} className="h-3" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Category Analysis Tabs */}
-        <Tabs value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as any)} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="psychographic" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Psychographic
-            </TabsTrigger>
-            <TabsTrigger value="decision" className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              Decision Style
-            </TabsTrigger>
-            <TabsTrigger value="firmographic" className="flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Firmographic
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Psychographic Analysis */}
-          <TabsContent value="psychographic" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Dominant Fears */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-destructive" />
-                    Dominant Fears Impact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <BarChart data={mockData.psychographicInsights.dominantFears}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fear" tick={{ fontSize: 10 }} />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="avgSentiment" fill="var(--color-sentiment)" />
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              {/* Motivations */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-success" />
-                    Motivation Resonance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <BarChart data={mockData.psychographicInsights.motivations}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="motivation" tick={{ fontSize: 10 }} />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="avgSentiment" fill="var(--color-positive)" />
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Cognitive Patterns Radar */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Cognitive Bias Patterns</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  How different cognitive biases correlate with positive responses
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[400px]">
-                  <RadarChart data={mockData.psychographicInsights.cognitivePatterns}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="pattern" tick={{ fontSize: 10 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                    <Radar 
-                      name="Prevalence" 
-                      dataKey="prevalence" 
-                      stroke="var(--color-primary)" 
-                      fill="var(--color-primary)" 
-                      fillOpacity={0.2} 
-                    />
-                    <Radar 
-                      name="Positive Response" 
-                      dataKey="positiveResponse" 
-                      stroke="var(--color-positive)" 
-                      fill="var(--color-positive)" 
-                      fillOpacity={0.2} 
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                  </RadarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Decision Style Analysis */}
-          <TabsContent value="decision" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Processing Styles */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Information Processing Styles</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {mockData.decisionStyleInsights.processingStyles.map((style, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{style.style}</span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {style.count} personas
-                            </Badge>
-                            <span className="text-sm">{style.avgScore}/100</span>
-                          </div>
-                        </div>
-                        <Progress value={style.conversionRate} className="h-2" />
-                        <p className="text-xs text-muted-foreground">
-                          {style.conversionRate}% conversion rate
-                        </p>
+                    {portfolioSummary.evidenceElasticity.map((evidence, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                        <span className="font-medium text-sm">{evidence.tier}</span>
+                        <Badge 
+                          variant={evidence.avgSentimentDelta.includes('+0.31') ? 'default' : 'outline'}
+                          className="text-sm"
+                        >
+                          Avg Δ Sentiment {evidence.avgSentimentDelta}
+                        </Badge>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-2">Take-away:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      30-day pilot dashboards shift sentiment the most; audits mainly calm already-skeptical buyers.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Decision Speed vs Success */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Decision Speed vs Success Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <ScatterChart data={mockData.decisionStyleInsights.decisionSpeed}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="personas" label={{ value: 'Personas', position: 'insideBottom', offset: -5 }} />
-                      <YAxis label={{ value: 'Success Rate', angle: -90, position: 'insideLeft' }} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Scatter dataKey="successRate" fill="var(--color-primary)" />
-                    </ScatterChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Proof Requirements */}
+            {/* Persona Clusters */}
             <Card>
               <CardHeader>
-                <CardTitle>Proof Requirements vs Satisfaction</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  5. Persona Cluster Cheat-Sheet
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {mockData.decisionStyleInsights.proofRequirements.map((req, index) => (
-                    <div key={index} className="p-4 rounded-lg border bg-muted/50">
-                      <h4 className="font-medium text-sm mb-2">{req.requirement}</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Personas</span>
-                          <span className="text-xs font-medium">{req.personas}</span>
+                <div className="grid gap-4">
+                  {portfolioSummary.clusters.map((cluster, index) => (
+                    <div key={index} className="p-4 rounded-lg border">
+                      <div className="grid md:grid-cols-4 gap-4 items-center">
+                        <div>
+                          <h4 className="font-medium text-sm">{cluster.cluster}</h4>
+                          <p className="text-xs text-muted-foreground">{cluster.count} personas</p>
                         </div>
-                        <Progress value={req.satisfaction} className="h-1" />
-                        <p className="text-xs text-muted-foreground">
-                          {req.satisfaction}% satisfaction
-                        </p>
+                        <div className="text-xs">
+                          <span className="text-muted-foreground">Key Handle:</span>
+                          <p className="italic">{cluster.keyHandle}</p>
+                        </div>
+                        <div className="text-xs">
+                          <span className="text-muted-foreground">Quick Win:</span>
+                          <p>{cluster.quickWin}</p>
+                        </div>
+                        <Badge variant="outline" className="w-fit">
+                          {cluster.count} personas
+                        </Badge>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Firmographic Analysis */}
-          <TabsContent value="firmographic" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Company Size Analysis */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Company Size Sentiment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <BarChart data={mockData.firmographicInsights.companySize}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="size" tick={{ fontSize: 10 }} />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="avgSentiment" fill="var(--color-primary)" />
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              {/* Industry Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Industry Adoption Rates</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <PieChart>
-                      <Pie
-                        data={mockData.firmographicInsights.industries}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="adoptionRate"
-                        nameKey="industry"
-                      >
-                        {mockData.firmographicInsights.industries.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`hsl(var(--primary) / ${0.8 - index * 0.15})`} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                    </PieChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Funding Stage vs Risk */}
+            {/* Executive Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Funding Stage Risk Profile</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-primary" />
+                  6. Single-Slide Executive Summary
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mockData.firmographicInsights.fundingStage.map((stage, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-gradient-primary"></div>
-                        <div>
-                          <p className="font-medium text-sm">{stage.stage}</p>
-                          <p className="text-xs text-muted-foreground">{stage.count} personas</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Badge 
-                          variant={stage.riskAppetite === 'High' ? 'default' : stage.riskAppetite === 'Medium' ? 'secondary' : 'outline'}
-                          className="text-xs"
-                        >
-                          {stage.riskAppetite} Risk
-                        </Badge>
-                        <div className="text-right">
-                          <p className="font-medium text-sm">{stage.avgScore}</p>
-                          <p className="text-xs text-muted-foreground">avg score</p>
-                        </div>
-                      </div>
+                <div className="space-y-4 p-4 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border">
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold">80% of personas will pilot if one of two conditions is met:</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <h4 className="font-medium flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">a</span>
+                        Path A: Economic Validation
+                      </h4>
+                      <p className="text-sm text-muted-foreground ml-8">
+                        MDR uplift ≤ +4 bps and proven +3 pp conversion
+                      </p>
                     </div>
-                  ))}
+                    <div className="space-y-2">
+                      <h4 className="font-medium flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-xs flex items-center justify-center">b</span>
+                        Path B: Compliance Assurance
+                      </h4>
+                      <p className="text-sm text-muted-foreground ml-8">
+                        Formal compliance pack delivered with signed SLA
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6 pt-4 border-t">
+                    <div>
+                      <h4 className="font-medium text-sm mb-1">Persuasion Insight:</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Dashboards beat audits for persuasion (+0.31 vs. +0.07 sentiment).
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm mb-1">Speed Insight:</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Cost is the #1 blocker; address it early for fastest cycle time.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Cross-Category Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5 text-primary" />
-              Cross-Category Strategic Insights
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Key patterns emerging across psychographic, decision, and firmographic dimensions
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockData.crossCategoryInsights.map((insight, index) => (
-                <div 
-                  key={index} 
-                  className={`p-4 rounded-lg border-l-4 ${
-                    insight.impact === 'high' 
-                      ? 'border-l-primary bg-primary/5' 
-                      : 'border-l-secondary bg-secondary/5'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-sm">{insight.title}</h4>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={insight.impact === 'high' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {insight.impact} impact
-                      </Badge>
-                      <div className="flex gap-1">
-                        {insight.categories.map((cat, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {cat}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{insight.description}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
