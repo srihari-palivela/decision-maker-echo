@@ -45,18 +45,20 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { useState } from "react";
+import { mockPersonas } from "@/data/mockPersonas";
 
 export default function InsightsDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<'psychographic' | 'decision' | 'firmographic'>('psychographic');
   const [selectedSimulation, setSelectedSimulation] = useState<string>('SIM001');
   
-  // Mock simulation data
+  // Mock simulation data with selected personas
   const simulations = [
     {
       id: 'SIM001',
       name: 'Magic Checkout Rollout Q4',
       description: 'Testing UPI one-click checkout acceptance',
-      personas: 16,
+      selectedPersonaIds: ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'],
+      personas: 8,
       avgScore: 74,
       date: '2024-01-15'
     },
@@ -64,7 +66,8 @@ export default function InsightsDashboard() {
       id: 'SIM002', 
       name: 'Razorpay Capital Launch',
       description: 'Working capital product market fit',
-      personas: 12,
+      selectedPersonaIds: ['P01', 'P08', 'P09', 'P12', 'P15'],
+      personas: 5,
       avgScore: 68,
       date: '2024-01-08'
     },
@@ -72,46 +75,98 @@ export default function InsightsDashboard() {
       id: 'SIM003',
       name: 'Cross-border Payments Beta',
       description: 'Multi-currency settlement testing',
-      personas: 8,
+      selectedPersonaIds: ['P05', 'P06', 'P08', 'P11'],
+      personas: 4,
       avgScore: 82,
       date: '2024-01-03'
     }
   ];
 
-  // Simulation-specific insights data
+  // Generate dynamic simulation data based on selected personas
   const getSimulationData = (simId: string) => {
-    const simulationInsights = {
-      'SIM001': {
-        // Heat Map Data (Persona × Sentiment)
-        heatMapData: [
-          { persona: 'HyperGrowth_D2C_Founder', sentiment: 0.75, objection: 'Price delta negligible if CVR ↑', color: 'success' },
-          { persona: 'Bootstrapped_SaaS_CTO', sentiment: -0.20, objection: '+7 bps too high vs. Stripe APAC', color: 'warning' },
-          { persona: 'RiskAverse_FinTech_CFO', sentiment: -0.65, objection: 'RBI approval first', color: 'destructive' },
-          { persona: 'SpeedFirst_EdTech_COO', sentiment: 0.85, objection: 'Perfect for admission rush', color: 'success' },
-          { persona: 'Gaming_CFO_CrossBorder', sentiment: 0.35, objection: 'FX rates need clarity', color: 'warning' },
-          { persona: 'Mobility_Enterprise_VP', sentiment: -0.15, objection: 'Legacy integration concerns', color: 'warning' },
-          { persona: 'HealthTech_Compliance_Founder', sentiment: -0.45, objection: 'PII handling questions', color: 'destructive' },
-          { persona: 'GlobalSeed_SaaS_Founder', sentiment: 0.65, objection: 'Looks promising for scale', color: 'success' }
-        ],
-        // Objection Clusters
-        objectionClusters: [
-          { category: 'Cost', percentage: 40, count: 8 },
-          { category: 'Compliance', percentage: 22, count: 4 },
-          { category: 'Integration', percentage: 18, count: 3 },
-          { category: 'User Demand', percentage: 12, count: 2 },
-          { category: 'Risk/Chargebacks', percentage: 8, count: 1 }
-        ],
-        // Adoption Likelihood Funnel
-        adoptionFunnel: {
-          total: 16,
-          likely: { count: 5, percentage: 31, threshold: '≥7' },
-          maybe: { count: 6, percentage: 38, threshold: '4-6' },
-          unlikely: { count: 5, percentage: 31, threshold: '≤3' }
-        }
+    const simulation = simulations.find(sim => sim.id === simId);
+    if (!simulation) return null;
+
+    // Get selected personas for this simulation
+    const selectedPersonas = simulation.selectedPersonaIds.map(id => 
+      mockPersonas.find(p => p.id === id)
+    ).filter(Boolean);
+
+    // Generate heat map data based on selected personas
+    const heatMapData = selectedPersonas.map(persona => {
+      // Generate sentiment based on persona characteristics
+      let sentiment = Math.random() * 2 - 1; // -1 to 1
+      
+      // Adjust sentiment based on persona traits
+      if (persona.psychographicProfile?.riskAppetite === 'High') sentiment += 0.3;
+      if (persona.psychographicProfile?.riskAppetite === 'Low') sentiment -= 0.3;
+      if (persona.decisionMakingStyle?.decisionSpeed === 'Immediate') sentiment += 0.2;
+      if (persona.decisionMakingStyle?.decisionSpeed === 'Deliberate') sentiment -= 0.2;
+      
+      // Clamp to [-1, 1]
+      sentiment = Math.max(-1, Math.min(1, sentiment));
+      
+      const color = sentiment > 0.3 ? 'success' : sentiment < -0.3 ? 'destructive' : 'warning';
+      
+      // Generate objection based on persona fears and motivations
+      const objections = {
+        'PaymentFailureLoss': 'Worried about checkout reliability',
+        'CashFlowCrunch': 'Need faster settlement cycles',
+        'IntegrationOverhead': 'Concerned about implementation effort',
+        'RegulatoryNonCompliance': 'Need compliance validation first',
+        'ChargebackPenalty': 'Risk of increased disputes',
+        'BrandReputationDamage': 'Brand safety concerns'
+      };
+      
+      const objection = objections[persona.psychographicProfile?.dominantFear] || 
+                       'Evaluating against other options';
+
+      return {
+        persona: persona.name,
+        sentiment: Number(sentiment.toFixed(2)),
+        objection,
+        color
+      };
+    });
+
+    // Generate objection clusters from heat map data
+    const objectionCategories = {
+      'Cost': ['Price', 'fees', 'cost', 'expensive'],
+      'Compliance': ['compliance', 'regulation', 'audit', 'security'],
+      'Integration': ['integration', 'implementation', 'technical'],
+      'Risk': ['risk', 'chargeback', 'fraud', 'reliability'],
+      'Features': ['feature', 'functionality', 'capability']
+    };
+
+    const objectionClusters = Object.entries(objectionCategories).map(([category, keywords]) => {
+      const count = heatMapData.filter(item => 
+        keywords.some(keyword => 
+          item.objection.toLowerCase().includes(keyword.toLowerCase())
+        )
+      ).length;
+      return {
+        category,
+        count,
+        percentage: Math.round((count / heatMapData.length) * 100)
+      };
+    }).filter(cluster => cluster.count > 0);
+
+    // Generate adoption funnel from sentiment data
+    const likely = heatMapData.filter(item => item.sentiment > 0.3).length;
+    const maybe = heatMapData.filter(item => item.sentiment >= -0.3 && item.sentiment <= 0.3).length;
+    const unlikely = heatMapData.filter(item => item.sentiment < -0.3).length;
+    const total = heatMapData.length;
+
+    return {
+      heatMapData,
+      objectionClusters,
+      adoptionFunnel: {
+        total,
+        likely: { count: likely, percentage: Math.round((likely / total) * 100), threshold: '>0.3' },
+        maybe: { count: maybe, percentage: Math.round((maybe / total) * 100), threshold: '-0.3 to 0.3' },
+        unlikely: { count: unlikely, percentage: Math.round((unlikely / total) * 100), threshold: '<-0.3' }
       }
     };
-    
-    return simulationInsights[simId] || simulationInsights['SIM001'];
   };
 
   // Enhanced mock data with detailed category analysis
