@@ -48,7 +48,72 @@ import { useState } from "react";
 
 export default function InsightsDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<'psychographic' | 'decision' | 'firmographic'>('psychographic');
+  const [selectedSimulation, setSelectedSimulation] = useState<string>('SIM001');
   
+  // Mock simulation data
+  const simulations = [
+    {
+      id: 'SIM001',
+      name: 'Magic Checkout Rollout Q4',
+      description: 'Testing UPI one-click checkout acceptance',
+      personas: 16,
+      avgScore: 74,
+      date: '2024-01-15'
+    },
+    {
+      id: 'SIM002', 
+      name: 'Razorpay Capital Launch',
+      description: 'Working capital product market fit',
+      personas: 12,
+      avgScore: 68,
+      date: '2024-01-08'
+    },
+    {
+      id: 'SIM003',
+      name: 'Cross-border Payments Beta',
+      description: 'Multi-currency settlement testing',
+      personas: 8,
+      avgScore: 82,
+      date: '2024-01-03'
+    }
+  ];
+
+  // Simulation-specific insights data
+  const getSimulationData = (simId: string) => {
+    const simulationInsights = {
+      'SIM001': {
+        // Heat Map Data (Persona × Sentiment)
+        heatMapData: [
+          { persona: 'HyperGrowth_D2C_Founder', sentiment: 0.75, objection: 'Price delta negligible if CVR ↑', color: 'success' },
+          { persona: 'Bootstrapped_SaaS_CTO', sentiment: -0.20, objection: '+7 bps too high vs. Stripe APAC', color: 'warning' },
+          { persona: 'RiskAverse_FinTech_CFO', sentiment: -0.65, objection: 'RBI approval first', color: 'destructive' },
+          { persona: 'SpeedFirst_EdTech_COO', sentiment: 0.85, objection: 'Perfect for admission rush', color: 'success' },
+          { persona: 'Gaming_CFO_CrossBorder', sentiment: 0.35, objection: 'FX rates need clarity', color: 'warning' },
+          { persona: 'Mobility_Enterprise_VP', sentiment: -0.15, objection: 'Legacy integration concerns', color: 'warning' },
+          { persona: 'HealthTech_Compliance_Founder', sentiment: -0.45, objection: 'PII handling questions', color: 'destructive' },
+          { persona: 'GlobalSeed_SaaS_Founder', sentiment: 0.65, objection: 'Looks promising for scale', color: 'success' }
+        ],
+        // Objection Clusters
+        objectionClusters: [
+          { category: 'Cost', percentage: 40, count: 8 },
+          { category: 'Compliance', percentage: 22, count: 4 },
+          { category: 'Integration', percentage: 18, count: 3 },
+          { category: 'User Demand', percentage: 12, count: 2 },
+          { category: 'Risk/Chargebacks', percentage: 8, count: 1 }
+        ],
+        // Adoption Likelihood Funnel
+        adoptionFunnel: {
+          total: 16,
+          likely: { count: 5, percentage: 31, threshold: '≥7' },
+          maybe: { count: 6, percentage: 38, threshold: '4-6' },
+          unlikely: { count: 5, percentage: 31, threshold: '≤3' }
+        }
+      }
+    };
+    
+    return simulationInsights[simId] || simulationInsights['SIM001'];
+  };
+
   // Enhanced mock data with detailed category analysis
   const mockData = {
     overallSentiment: {
@@ -171,6 +236,9 @@ export default function InsightsDashboard() {
     }
   };
 
+  const currentSimulation = simulations.find(sim => sim.id === selectedSimulation) || simulations[0];
+  const simulationData = getSimulationData(selectedSimulation);
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -179,7 +247,7 @@ export default function InsightsDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Insights Dashboard</h1>
             <p className="text-muted-foreground mt-1">
-              Deep behavioral analysis across persona categories
+              Per-simulation behavioral analysis and sentiment insights
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -194,55 +262,233 @@ export default function InsightsDashboard() {
           </div>
         </div>
 
+        {/* Simulation Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Simulation Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              {simulations.map((sim) => (
+                <div
+                  key={sim.id}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                    selectedSimulation === sim.id 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setSelectedSimulation(sim.id)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-sm">{sim.name}</h3>
+                    <Badge variant={selectedSimulation === sim.id ? 'default' : 'outline'}>
+                      {sim.avgScore}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{sim.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>{sim.personas} personas</span>
+                    <span>{sim.date}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="hover-scale">
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">{mockData.avgScore}</p>
-                  <p className="text-sm text-muted-foreground">Avg Score</p>
-                </div>
+                 <div>
+                   <p className="text-2xl font-bold">{currentSimulation.avgScore}</p>
+                   <p className="text-sm text-muted-foreground">Avg Score</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+
+           <Card className="hover-scale">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-2">
+                 <Brain className="h-5 w-5 text-primary" />
+                 <div>
+                   <p className="text-2xl font-bold">{currentSimulation.personas}</p>
+                   <p className="text-sm text-muted-foreground">Personas</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+
+           <Card className="hover-scale">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-2">
+                 <TrendingUp className="h-5 w-5 text-success" />
+                 <div>
+                   <p className="text-2xl font-bold">{simulationData.adoptionFunnel.likely.percentage}%</p>
+                   <p className="text-sm text-muted-foreground">Likely Adopters</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+
+           <Card className="hover-scale">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-2">
+                 <AlertTriangle className="h-5 w-5 text-warning" />
+                 <div>
+                   <p className="text-2xl font-bold">{simulationData.objectionClusters[0].percentage}%</p>
+                   <p className="text-sm text-muted-foreground">Cost Objections</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+        </div>
+
+        {/* Simulation-Specific Visualizations */}
+        <div className="grid gap-6">
+          {/* Heat Map */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Persona × Sentiment Heat Map
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {currentSimulation.name} - Individual persona sentiment analysis
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2">
+                {simulationData.heatMapData.map((item, index) => (
+                  <div 
+                    key={index}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      item.color === 'success' ? 'bg-success/10 border-success/20' :
+                      item.color === 'warning' ? 'bg-warning/10 border-warning/20' :
+                      'bg-destructive/10 border-destructive/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{item.persona}</p>
+                        <p className="text-xs text-muted-foreground italic">"{item.objection}"</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={item.color === 'success' ? 'default' : item.color === 'warning' ? 'secondary' : 'destructive'}
+                        className="text-xs"
+                      >
+                        {item.sentiment > 0 ? '+' : ''}{item.sentiment.toFixed(2)}
+                      </Badge>
+                      <div className={`w-3 h-3 rounded-full ${
+                        item.color === 'success' ? 'bg-success' :
+                        item.color === 'warning' ? 'bg-warning' :
+                        'bg-destructive'
+                      }`} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover-scale">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">{mockData.totalSimulations}</p>
-                  <p className="text-sm text-muted-foreground">Simulations</p>
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Objection Cluster Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                  Objection Clusters
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {simulationData.objectionClusters.map((cluster, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{cluster.category}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {'█'.repeat(Math.ceil(cluster.percentage / 10))}
+                          </span>
+                          <span className="text-sm font-medium">{cluster.percentage}%</span>
+                        </div>
+                      </div>
+                      <Progress value={cluster.percentage} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        {cluster.count} persona{cluster.count !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="hover-scale">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <div>
-                  <p className="text-2xl font-bold">{mockData.overallSentiment.positive}%</p>
-                  <p className="text-sm text-muted-foreground">Positive</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Adoption Likelihood Funnel */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                  Adoption Likelihood Funnel
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <p className="text-lg font-semibold">Persona Set (n={simulationData.adoptionFunnel.total})</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-4 text-success">├─</div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">Likely (score {simulationData.adoptionFunnel.likely.threshold})</span>
+                          <span className="text-sm font-bold text-success">
+                            {simulationData.adoptionFunnel.likely.count} ({simulationData.adoptionFunnel.likely.percentage}%)
+                          </span>
+                        </div>
+                        <Progress value={simulationData.adoptionFunnel.likely.percentage} className="h-3" />
+                      </div>
+                    </div>
 
-          <Card className="hover-scale">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">16</p>
-                  <p className="text-sm text-muted-foreground">Active Personas</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-4 text-warning">├─</div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">Maybe (score {simulationData.adoptionFunnel.maybe.threshold})</span>
+                          <span className="text-sm font-bold text-warning">
+                            {simulationData.adoptionFunnel.maybe.count} ({simulationData.adoptionFunnel.maybe.percentage}%)
+                          </span>
+                        </div>
+                        <Progress value={simulationData.adoptionFunnel.maybe.percentage} className="h-3" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-4 text-destructive">└─</div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">Unlikely (score {simulationData.adoptionFunnel.unlikely.threshold})</span>
+                          <span className="text-sm font-bold text-destructive">
+                            {simulationData.adoptionFunnel.unlikely.count} ({simulationData.adoptionFunnel.unlikely.percentage}%)
+                          </span>
+                        </div>
+                        <Progress value={simulationData.adoptionFunnel.unlikely.percentage} className="h-3" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Category Analysis Tabs */}
