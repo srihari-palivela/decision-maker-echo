@@ -54,8 +54,7 @@ export default function PersonaLibrary() {
   };
 
   const handleEditPersona = (persona: Persona) => {
-    setEditingPersona(persona);
-    setShowPersonaForm(true);
+    window.location.href = `/edit/${persona.id}`;
   };
 
   const filteredPersonas = useMemo(() => {
@@ -181,13 +180,7 @@ export default function PersonaLibrary() {
             <PersonaCard
               key={persona.id}
               persona={persona}
-              isSelected={selectedPersonas.some(p => p.id === persona.id)}
-              onSelect={handleSelectPersona}
               onEdit={handleEditPersona}
-              onViewDetails={(persona) => {
-                // TODO: Open persona details modal
-                console.log('View details for:', persona.name);
-              }}
             />
           ))}
         </div>

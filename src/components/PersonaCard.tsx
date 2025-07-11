@@ -47,15 +47,12 @@ export interface Persona {
 
 interface PersonaCardProps {
   persona: Persona;
-  isSelected?: boolean;
-  onSelect?: (persona: Persona) => void;
-  onViewDetails?: (persona: Persona) => void;
   onEdit?: (persona: Persona) => void;
 }
 
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 
-export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEdit }: PersonaCardProps) {
+export function PersonaCard({ persona, onEdit }: PersonaCardProps) {
   // Convert persona attributes to spider chart data
   const getSpiderData = (profile: any, maxValue = 5) => {
     return Object.entries(profile).map(([key, value]) => ({
@@ -70,13 +67,7 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
   const firmographicData = getSpiderData(persona.firmographicProfile);
 
   return (
-    <Card 
-      className={`group relative transition-all duration-200 hover:shadow-lg ${
-        isSelected 
-          ? "ring-2 ring-primary shadow-lg bg-gradient-card" 
-          : "hover:shadow-md"
-      }`}
-    >
+    <Card className="group relative transition-all duration-200 hover:shadow-lg hover:shadow-md">
       {/* Horizontal Layout */}
       <div className="flex p-6 gap-6">
         {/* Left: Basic Info */}
@@ -115,38 +106,17 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="flex-1 text-xs"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails?.(persona);
-              }}
-            >
-              View Details
-            </Button>
+          <div className="pt-2">
             <Button 
               size="sm" 
               variant="outline"
-              className="flex-1 text-xs"
+              className="w-full text-xs"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit?.(persona);
               }}
             >
               Edit
-            </Button>
-            <Button 
-              size="sm" 
-              className="flex-1 text-xs"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect?.(persona);
-              }}
-            >
-              {isSelected ? "Selected" : "Select"}
             </Button>
           </div>
         </div>

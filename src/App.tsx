@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PersonaLibrary from "./pages/PersonaLibrary";
+import EditPersona from "./pages/EditPersona";
 import SimulationPage from "./pages/SimulationPage";
 import InsightsDashboard from "./pages/InsightsDashboard";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<PersonaLibrary />} />
+                  <Route path="/edit/:id" element={<EditPersona />} />
                   <Route path="/simulation" element={<SimulationPage />} />
                   <Route path="/insights" element={<InsightsDashboard />} />
                   <Route path="/history" element={<div className="p-6"><h1 className="text-2xl font-bold">Scenario History</h1><p className="text-muted-foreground">Coming soon...</p></div>} />
