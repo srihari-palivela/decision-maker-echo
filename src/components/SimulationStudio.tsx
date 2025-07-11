@@ -29,7 +29,6 @@ import {
 import { Persona } from "./PersonaCard";
 import { ConversationAgent, InsightAgent, CONVERSATION_STAGES as SERVICE_STAGES } from '@/services/agentService';
 import { useToast } from '@/hooks/use-toast';
-import SettingsDialog from './SettingsDialog';
 
 interface ConversationStage {
   stage_id: string;
@@ -199,10 +198,9 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
     if (!settings.openaiApiKey) {
       toast({
         title: "API key required",
-        description: "Please configure your OpenAI API key in settings.",
+        description: "Please configure your OpenAI API key in Settings.",
         variant: "destructive",
       });
-      setShowSettings(true);
       return;
     }
 
@@ -448,8 +446,6 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
 
   return (
     <div className="space-y-6">
-      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
-      
       {/* Navigation Tabs */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
         <TabsList className="grid w-full grid-cols-3">
@@ -465,15 +461,9 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
         <TabsContent value="setup">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
-                  Simulation Studio
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5" />
+                Simulation Studio
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
