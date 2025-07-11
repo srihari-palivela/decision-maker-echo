@@ -151,89 +151,96 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
           </div>
         </div>
 
-        {/* Right: Charts and Key Values */}
-        <div className="flex-1 grid grid-cols-3 gap-4">
-          {/* Psychographic Chart */}
+        {/* Right: Description and Charts */}
+        <div className="flex-1 space-y-4">
+          {/* Description */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-center">Psychographic</h4>
-            <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={psychographicData.slice(0, 6)}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
-                  <Radar
-                    name="Score"
-                    dataKey="value"
-                    stroke="hsl(var(--primary))"
-                    fill="hsl(var(--primary))"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                    label={{ fontSize: 8, fill: "hsl(var(--primary))" }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+            <h4 className="text-sm font-medium">Description</h4>
+            <p className="text-sm text-muted-foreground line-clamp-3">{persona.bio}</p>
+          </div>
+
+          {/* Psychographic and Decision Charts Row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Psychographic Chart */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-center">Psychographic</h4>
+              <div className="h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={psychographicData.slice(0, 6)}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
+                    <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
+                    <Radar
+                      name="Score"
+                      dataKey="value"
+                      stroke="hsl(var(--primary))"
+                      fill="hsl(var(--primary))"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                      label={{ fontSize: 8, fill: "hsl(var(--primary))" }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Decision Making Chart */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-center">Decision Style</h4>
+              <div className="h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={decisionData.slice(0, 6)}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
+                    <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
+                    <Radar
+                      name="Score"
+                      dataKey="value"
+                      stroke="hsl(262 83% 70%)"
+                      fill="hsl(262 83% 70%)"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                      label={{ fontSize: 8, fill: "hsl(262 83% 70%)" }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
-          {/* Decision Making Chart */}
+          {/* Firmographic Section */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-center">Decision Style</h4>
-            <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={decisionData.slice(0, 6)}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
-                  <Radar
-                    name="Score"
-                    dataKey="value"
-                    stroke="hsl(262 83% 70%)"
-                    fill="hsl(262 83% 70%)"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                    label={{ fontSize: 8, fill: "hsl(262 83% 70%)" }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Firmographic Key Values */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-center">Firmographic</h4>
-            <div className="h-32 space-y-1 overflow-y-auto">
-              <div className="text-xs space-y-1">
-                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Size:</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {persona.firmographicProfile.companySizeEmployees.split('_')[1] || persona.firmographicProfile.companySizeEmployees}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Funding:</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {persona.firmographicProfile.fundingStage.replace('_', ' ')}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Payment:</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {persona.firmographicProfile.primaryPaymentMix.split('_')[0]}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Growth:</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {persona.firmographicProfile.growthTrajectory.split('_')[0]}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Tech:</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {persona.firmographicProfile.techStackMaturity.split('_')[0]}
-                  </Badge>
-                </div>
+            <h4 className="text-sm font-medium">Firmographic</h4>
+            <div className="grid grid-cols-5 gap-2">
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground">Size</div>
+                <Badge variant="outline" className="text-xs px-1 py-0 mt-1">
+                  {persona.firmographicProfile.companySizeEmployees.split('_')[1] || persona.firmographicProfile.companySizeEmployees}
+                </Badge>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground">Funding</div>
+                <Badge variant="outline" className="text-xs px-1 py-0 mt-1">
+                  {persona.firmographicProfile.fundingStage.replace('_', ' ')}
+                </Badge>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground">Payment</div>
+                <Badge variant="outline" className="text-xs px-1 py-0 mt-1">
+                  {persona.firmographicProfile.primaryPaymentMix.split('_')[0]}
+                </Badge>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground">Growth</div>
+                <Badge variant="outline" className="text-xs px-1 py-0 mt-1">
+                  {persona.firmographicProfile.growthTrajectory.split('_')[0]}
+                </Badge>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground">Tech</div>
+                <Badge variant="outline" className="text-xs px-1 py-0 mt-1">
+                  {persona.firmographicProfile.techStackMaturity.split('_')[0]}
+                </Badge>
               </div>
             </div>
           </div>

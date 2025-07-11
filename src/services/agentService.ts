@@ -251,45 +251,28 @@ Respond as this persona would, considering their background, priorities, and con
   }
 
   private async callOpenAI(personaContext: string, prompt: string, stage: ConversationStage): Promise<string> {
-    const messages = [
-      {
-        role: 'system',
-        content: `${personaContext}
+    // Mock response for development - replace with actual OpenAI call when API key is available
+    const mockResponses = {
+      SCR: "Yes, that's correct. We process around that volume annually in our vertical.",
+      RAP: "Festival season has been quite busy for us, lots of increased transaction volume.",
+      CAT: "We currently use Razorpay and PayU. I'd rate our satisfaction around 60 out of 100.",
+      KPI_AFF: "I'd rank Conversion as 1, Cost as 2, Cash-flow as 3, Compliance as 4. We're doing okay but could improve.",
+      PNI_COG: "The biggest pain is failed transactions during peak hours. It's costing us conversions.",
+      MOT: "A 5% improvement in checkout success would directly impact our revenue and customer satisfaction.",
+      CON: "Interesting concept. The instant credit feature could help with cart abandonment issues.",
+      BEN_AFF2: "T+0 settlement would be valuable (4/5), AI retry routing sounds promising (3/5).",
+      FEA: "I think instant settlement is more critical for our cash flow needs.",
+      PRI: "At +3 bps, quite likely (7/10). At +5 bps, maybe (5/10). At +7 bps, less likely (3/10).",
+      DEF_BAR: "Main concerns would be integration complexity and ensuring compliance requirements are met.",
+      EVI: "A peer case study with 35% improvement is impressive. That does make me more interested.",
+      PUR_COM: "Based on what I've heard, I'd say 7/10 likely to pilot in next 90 days. First step would be technical evaluation.",
+      CLOSE: "I think understanding the full technical requirements and implementation timeline would be crucial."
+    };
 
-You are participating in a market research interview about payment solutions. The interviewer is asking about a new UPI Credit-on-Autopay feature.
-
-Current stage: ${stage.stage_label}
-Goal: ${stage.psych_goal}
-Expected emotion: ${stage.expected_emotion}
-
-Respond naturally as this persona, considering their specific background and constraints. Keep responses conversational and authentic.`
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ];
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+    
+    return mockResponses[stage.stage_id as keyof typeof mockResponses] || "That's an interesting point to consider.";
   }
 
   private extractDataTags(response: string, logFields: string[]): Record<string, any> {
@@ -413,58 +396,39 @@ Generate insights in the following format:
 Provide response in JSON format.
 `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert market research analyst. Analyze simulation data and provide actionable insights in JSON format.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Mock insights generation for development
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    try {
-      return JSON.parse(data.choices[0].message.content);
-    } catch {
-      // Fallback if JSON parsing fails
-      return {
-        sentiment_heatmap: results.map(r => ({
-          persona_id: r.persona_id,
-          sentiment: r.final_sentiment,
-          key_objection: r.insights.barrier_codes[0] || 'None'
-        })),
-        objection_clusters: [
-          { name: 'Cost Concerns', percentage: 40 },
-          { name: 'Compliance Issues', percentage: 25 },
-          { name: 'Integration Complexity', percentage: 20 },
-          { name: 'Risk Factors', percentage: 15 }
-        ],
-        adoption_funnel: {
-          likely: Math.round(results.filter(r => r.insights.intent_score >= 7).length / results.length * 100),
-          maybe: Math.round(results.filter(r => r.insights.intent_score >= 4 && r.insights.intent_score < 7).length / results.length * 100),
-          unlikely: Math.round(results.filter(r => r.insights.intent_score < 4).length / results.length * 100)
-        }
-      };
-    }
+    return {
+      sentiment_heatmap: results.map(r => ({
+        persona_id: r.persona_id,
+        sentiment: r.final_sentiment,
+        key_objection: r.insights.barrier_codes[0] || 'None'
+      })),
+      objection_clusters: [
+        { name: 'Cost Concerns', percentage: 40 },
+        { name: 'Compliance Issues', percentage: 25 },
+        { name: 'Integration Complexity', percentage: 20 },
+        { name: 'Risk Factors', percentage: 15 }
+      ],
+      adoption_funnel: {
+        likely: Math.round(results.filter(r => r.insights.intent_score >= 7).length / results.length * 100),
+        maybe: Math.round(results.filter(r => r.insights.intent_score >= 4 && r.insights.intent_score < 7).length / results.length * 100),
+        unlikely: Math.round(results.filter(r => r.insights.intent_score < 4).length / results.length * 100)
+      },
+      key_themes: [
+        "Payment reliability is a top concern across personas",
+        "Cost sensitivity varies by company size", 
+        "Integration complexity is a common barrier",
+        "Instant settlement features show strong appeal"
+      ],
+      recommendations: [
+        "Focus on reliability messaging for technical personas",
+        "Develop tiered pricing for different company sizes",
+        "Create detailed integration guides and support",
+        "Highlight settlement speed as key differentiator"
+      ]
+    };
   }
 }
 
