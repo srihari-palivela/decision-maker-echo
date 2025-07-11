@@ -4,14 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PersonaCard, Persona } from "@/components/PersonaCard";
 import { FilterPanel, FilterOptions } from "@/components/FilterPanel";
+import { PersonaForm } from "@/components/PersonaForm";
 import { mockPersonas, filterOptions } from "@/data/mockPersonas";
-import { Search, Users, Filter } from "lucide-react";
+import { Search, Users, Filter, Plus } from "lucide-react";
 
 export default function PersonaLibrary() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPersonas, setSelectedPersonas] = useState<Persona[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<Partial<FilterOptions>>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [personas, setPersonas] = useState<Persona[]>(mockPersonas);
+  const [showPersonaForm, setShowPersonaForm] = useState(false);
+  const [editingPersona, setEditingPersona] = useState<Persona | undefined>();
 
   const handleFilterChange = (filterType: keyof FilterOptions, value: string, checked: boolean) => {
     setSelectedFilters(prev => {
@@ -39,8 +43,23 @@ export default function PersonaLibrary() {
     });
   };
 
+  const handleSavePersona = (persona: Persona) => {
+    if (editingPersona) {
+      setPersonas(prev => prev.map(p => p.id === persona.id ? persona : p));
+    } else {
+      setPersonas(prev => [...prev, persona]);
+    }
+    setShowPersonaForm(false);
+    setEditingPersona(undefined);
+  };
+
+  const handleEditPersona = (persona: Persona) => {
+    setEditingPersona(persona);
+    setShowPersonaForm(true);
+  };
+
   const filteredPersonas = useMemo(() => {
-    return mockPersonas.filter(persona => {
+    return personas.filter(persona => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -48,25 +67,24 @@ export default function PersonaLibrary() {
           persona.name,
           persona.title,
           persona.company,
-          persona.industry,
-          persona.primaryMotivation,
-          persona.cognitiveBias,
-          ...persona.traits
+          persona.firmographicProfile.industryVertical,
+          persona.psychographicProfile.primaryMotivation,
+          persona.bio
         ].join(' ').toLowerCase();
         
         if (!searchableText.includes(query)) return false;
       }
 
       // Category filters
-      if (selectedFilters.industries?.length && !selectedFilters.industries.includes(persona.industry)) return false;
-      if (selectedFilters.companySizes?.length && !selectedFilters.companySizes.includes(persona.companySize)) return false;
-      if (selectedFilters.gmvRanges?.length && !selectedFilters.gmvRanges.includes(persona.gmv)) return false;
-      if (selectedFilters.geographies?.length && !selectedFilters.geographies.includes(persona.geography)) return false;
-      if (selectedFilters.decisionStyles?.length && !selectedFilters.decisionStyles.includes(persona.decisionStyle)) return false;
+      if (selectedFilters.industries?.length && !selectedFilters.industries.includes(persona.firmographicProfile.industryVertical)) return false;
+      if (selectedFilters.companySizes?.length && !selectedFilters.companySizes.includes(persona.firmographicProfile.companySizeEmployees)) return false;
+      if (selectedFilters.gmvRanges?.length && !selectedFilters.gmvRanges.includes(persona.firmographicProfile.annualGMVRange)) return false;
+      if (selectedFilters.geographies?.length && !selectedFilters.geographies.includes(persona.firmographicProfile.geographicFootprint)) return false;
+      if (selectedFilters.decisionStyles?.length && !selectedFilters.decisionStyles.includes(persona.decisionMakingStyle.informationProcessingStyle)) return false;
 
       return true;
     });
-  }, [searchQuery, selectedFilters]);
+  }, [searchQuery, selectedFilters, personas]);
 
   const totalSelected = Object.values(selectedFilters).reduce((acc, curr) => acc + (curr?.length || 0), 0);
 
@@ -135,27 +153,37 @@ export default function PersonaLibrary() {
         {/* Results */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredPersonas.length} of {mockPersonas.length} personas
+            Showing {filteredPersonas.length} of {personas.length} personas
           </p>
-          {selectedPersonas.length > 0 && (
+          <div className="flex gap-2">
             <Button 
-              onClick={() => setSelectedPersonas([])}
-              variant="ghost"
+              onClick={() => setShowPersonaForm(true)}
               size="sm"
             >
-              Clear selection
+              <Plus className="h-4 w-4 mr-2" />
+              Create Persona
             </Button>
-          )}
+            {selectedPersonas.length > 0 && (
+              <Button 
+                onClick={() => setSelectedPersonas([])}
+                variant="ghost"
+                size="sm"
+              >
+                Clear selection
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Persona Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="space-y-4">
           {filteredPersonas.map((persona) => (
             <PersonaCard
               key={persona.id}
               persona={persona}
               isSelected={selectedPersonas.some(p => p.id === persona.id)}
               onSelect={handleSelectPersona}
+              onEdit={handleEditPersona}
               onViewDetails={(persona) => {
                 // TODO: Open persona details modal
                 console.log('View details for:', persona.name);
@@ -172,6 +200,18 @@ export default function PersonaLibrary() {
               Try adjusting your search or filter criteria
             </p>
           </div>
+        )}
+
+        {/* Persona Form Modal */}
+        {showPersonaForm && (
+          <PersonaForm
+            persona={editingPersona}
+            onSave={handleSavePersona}
+            onCancel={() => {
+              setShowPersonaForm(false);
+              setEditingPersona(undefined);
+            }}
+          />
         )}
       </div>
     </div>

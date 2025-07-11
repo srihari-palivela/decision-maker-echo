@@ -51,7 +51,7 @@ const mockAISimulation = async (input: string, personas: Persona[]) => {
       objections: sentiment === "negative" ? 
         mockObjections.slice(0, Math.floor(Math.random() * 3) + 1) : 
         Math.random() > 0.7 ? mockObjections.slice(0, 1) : [],
-      reasoning: `Based on ${persona.name}'s ${persona.decisionStyle.toLowerCase()} decision style and ${persona.primaryMotivation.toLowerCase()}, this ${sentiment} response reflects their ${persona.cognitiveBias}.`
+      reasoning: `Based on ${persona.name}'s ${persona.decisionMakingStyle.informationProcessingStyle.toLowerCase()} decision style and ${persona.psychographicProfile.primaryMotivation.toLowerCase()}, this ${sentiment} response reflects their ${persona.psychographicProfile.cognitiveBiasDominance}.`
     };
   });
 };

@@ -10,16 +10,39 @@ export interface Persona {
   title: string;
   company: string;
   avatar?: string;
-  industry: string;
-  companySize: string;
-  gmv: string;
-  geography: string;
-  decisionStyle: "Analytical" | "Collaborative" | "Intuitive" | "Decisive";
-  primaryFear: string;
-  primaryMotivation: string;
-  cognitiveBias: string;
   bio: string;
-  traits: string[];
+  psychographicProfile: {
+    dominantFear: string;
+    primaryMotivation: string;
+    cognitiveBiasDominance: string;
+    regulatoryFocus: string;
+    riskAppetite: string;
+    locusOfControl: string;
+    socialDominance: string;
+    growthMindsetLevel: string;
+  };
+  decisionMakingStyle: {
+    informationProcessingStyle: string;
+    decisionOrientation: string;
+    proofRequirementLevel: string;
+    decisionSpeed: string;
+    evaluationHorizon: string;
+    stakeholderInvolvement: string;
+    vendorPreference: string;
+    negotiationStyle: string;
+  };
+  firmographicProfile: {
+    companySizeEmployees: string;
+    industryVertical: string;
+    annualGMVRange: string;
+    fundingStage: string;
+    primaryPaymentMix: string;
+    geographicFootprint: string;
+    growthTrajectory: string;
+    techStackMaturity: string;
+    integrationComplexity: string;
+    complianceBurden: string;
+  };
 }
 
 interface PersonaCardProps {
@@ -27,121 +50,176 @@ interface PersonaCardProps {
   isSelected?: boolean;
   onSelect?: (persona: Persona) => void;
   onViewDetails?: (persona: Persona) => void;
+  onEdit?: (persona: Persona) => void;
 }
 
-export function PersonaCard({ persona, isSelected, onSelect, onViewDetails }: PersonaCardProps) {
-  const decisionStyleColors = {
-    Analytical: "bg-blue-100 text-blue-700",
-    Collaborative: "bg-green-100 text-green-700", 
-    Intuitive: "bg-purple-100 text-purple-700",
-    Decisive: "bg-orange-100 text-orange-700"
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+
+export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEdit }: PersonaCardProps) {
+  // Convert persona attributes to spider chart data
+  const getSpiderData = (profile: any, maxValue = 5) => {
+    return Object.entries(profile).map(([key, value]) => ({
+      attribute: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+      value: Math.floor(Math.random() * maxValue) + 1, // Mock scoring for now
+      fullMark: maxValue
+    }));
   };
+
+  const psychographicData = getSpiderData(persona.psychographicProfile);
+  const decisionData = getSpiderData(persona.decisionMakingStyle);
+  const firmographicData = getSpiderData(persona.firmographicProfile);
 
   return (
     <Card 
-      className={`group relative cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+      className={`group relative transition-all duration-200 hover:shadow-lg ${
         isSelected 
           ? "ring-2 ring-primary shadow-lg bg-gradient-card" 
           : "hover:shadow-md"
       }`}
-      onClick={() => onSelect?.(persona)}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm">
-            <AvatarImage src={persona.avatar} />
-            <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-              {persona.name.split(' ').map(n => n[0]).join('')}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">{persona.name}</h3>
-            <p className="text-sm text-muted-foreground truncate">{persona.title}</p>
-            <p className="text-sm font-medium text-primary truncate">{persona.company}</p>
+      {/* Horizontal Layout */}
+      <div className="flex p-6 gap-6">
+        {/* Left: Basic Info */}
+        <div className="flex-shrink-0 w-64 space-y-4">
+          <div className="flex items-start gap-3">
+            <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm">
+              <AvatarImage src={persona.avatar} />
+              <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                {persona.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground truncate">{persona.name}</h3>
+              <p className="text-sm text-muted-foreground truncate">{persona.title}</p>
+              <p className="text-sm font-medium text-primary truncate">{persona.company}</p>
+            </div>
           </div>
-          
-          <Badge 
-            variant="secondary" 
-            className={decisionStyleColors[persona.decisionStyle]}
-          >
-            {persona.decisionStyle}
-          </Badge>
-        </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="flex items-center gap-1.5">
-            <Building className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground truncate">{persona.industry}</span>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Building className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{persona.firmographicProfile.industryVertical}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{persona.firmographicProfile.companySizeEmployees}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{persona.firmographicProfile.annualGMVRange}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{persona.firmographicProfile.geographicFootprint}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Users className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground truncate">{persona.companySize}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <DollarSign className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground truncate">{persona.gmv}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground truncate">{persona.geography}</span>
+
+          <div className="flex gap-2 pt-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails?.(persona);
+              }}
+            >
+              View Details
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="flex-1 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(persona);
+              }}
+            >
+              Edit
+            </Button>
+            <Button 
+              size="sm" 
+              className="flex-1 text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect?.(persona);
+              }}
+            >
+              {isSelected ? "Selected" : "Select"}
+            </Button>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <Briefcase className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-              <span className="font-medium">Motivation:</span> {persona.primaryMotivation}
-            </p>
+        {/* Right: Spider Charts */}
+        <div className="flex-1 grid grid-cols-3 gap-4">
+          {/* Psychographic Chart */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-center">Psychographic</h4>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={psychographicData.slice(0, 6)}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
+                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
+                  <Radar
+                    name="Score"
+                    dataKey="value"
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <Brain className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-              <span className="font-medium">Bias:</span> {persona.cognitiveBias}
-            </p>
+
+          {/* Decision Making Chart */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-center">Decision Style</h4>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={decisionData.slice(0, 6)}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
+                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
+                  <Radar
+                    name="Score"
+                    dataKey="value"
+                    stroke="hsl(var(--secondary))"
+                    fill="hsl(var(--secondary))"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Firmographic Chart */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-center">Firmographic</h4>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={firmographicData.slice(0, 6)}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
+                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
+                  <Radar
+                    name="Score"
+                    dataKey="value"
+                    stroke="hsl(var(--accent))"
+                    fill="hsl(var(--accent))"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-1">
-          {persona.traits.slice(0, 3).map((trait, index) => (
-            <Badge key={index} variant="outline" className="text-xs px-2 py-0.5">
-              {trait}
-            </Badge>
-          ))}
-          {persona.traits.length > 3 && (
-            <Badge variant="outline" className="text-xs px-2 py-0.5">
-              +{persona.traits.length - 3}
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="flex-1 text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails?.(persona);
-            }}
-          >
-            View Details
-          </Button>
-          <Button 
-            size="sm" 
-            className="flex-1 text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect?.(persona);
-            }}
-          >
-            {isSelected ? "Selected" : "Select"}
-          </Button>
-        </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
