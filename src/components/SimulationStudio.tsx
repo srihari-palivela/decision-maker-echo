@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,9 +22,14 @@ import {
   ArrowRight,
   User,
   Bot,
-  Pause
+  Pause,
+  Settings,
+  Square
 } from "lucide-react";
 import { Persona } from "./PersonaCard";
+import { ConversationAgent, InsightAgent, CONVERSATION_STAGES as SERVICE_STAGES } from '@/services/agentService';
+import { useToast } from '@/hooks/use-toast';
+import SettingsDialog from './SettingsDialog';
 
 interface ConversationStage {
   stage_id: string;
@@ -145,10 +152,11 @@ const CONVERSATION_STAGES = [
 
 interface SimulationStudioProps {
   selectedPersonas: Persona[];
-  onRunSimulation: (input: string, personas: Persona[]) => Promise<SimulationResult[]>;
+  onRunSimulation?: (input: string, personas: Persona[]) => Promise<SimulationResult[]>;
+  onSimulationComplete?: (results: any[]) => void;
 }
 
-export function SimulationStudio({ selectedPersonas, onRunSimulation }: SimulationStudioProps) {
+export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulationComplete }: SimulationStudioProps) {
   const [input, setInput] = useState("");
   const [results, setResults] = useState<SimulationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,6 +164,22 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
   const [activeConversations, setActiveConversations] = useState<PersonaConversation[]>([]);
   const [simulationName, setSimulationName] = useState("");
   const [viewMode, setViewMode] = useState<"setup" | "conversations" | "results">("setup");
+  const [showSettings, setShowSettings] = useState(false);
+  const { toast } = useToast();
+
+  // Load settings from localStorage
+  const getSettings = () => {
+    const savedSettings = localStorage.getItem('simulation-settings');
+    if (savedSettings) {
+      return JSON.parse(savedSettings);
+    }
+    return {
+      openaiApiKey: '',
+      conversationModel: 'o3-2025-04-16',
+      insightModel: 'o3-2025-04-16',
+      maxConcurrentSimulations: 4,
+    };
+  };
 
   const simulationPrompts = {
     feature: "Describe the new feature or product change you want to test:",
@@ -170,7 +194,26 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
   };
 
   const handleRunSimulation = async () => {
-    if (!input.trim() || selectedPersonas.length === 0) return;
+    const settings = getSettings();
+    
+    if (!settings.openaiApiKey) {
+      toast({
+        title: "API key required",
+        description: "Please configure your OpenAI API key in settings.",
+        variant: "destructive",
+      });
+      setShowSettings(true);
+      return;
+    }
+
+    if (!input.trim() || selectedPersonas.length === 0) {
+      toast({
+        title: "Missing information",
+        description: "Please provide simulation details and select personas.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const simName = simulationName || generateSimulationName();
     setSimulationName(simName);
@@ -181,7 +224,7 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
       simulationName: simName,
       startTime: new Date(),
       currentStage: "SCR",
-      stages: CONVERSATION_STAGES.map((stage, index) => ({
+      stages: SERVICE_STAGES.map((stage, index) => ({
         ...stage,
         completed: false,
         current: index === 0
@@ -194,11 +237,114 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
     setActiveConversations(conversations);
     setViewMode("conversations");
     setIsLoading(true);
-    
-    // Simulate conversation progression
-    setTimeout(() => {
-      simulateConversationFlow(conversations);
-    }, 1000);
+
+    try {
+      // Create agents
+      const conversationAgent = new ConversationAgent(settings.openaiApiKey, settings.conversationModel);
+      const insightAgent = new InsightAgent(settings.openaiApiKey, settings.insightModel);
+
+      // Run simulations in parallel with concurrency limit
+      const maxConcurrent = settings.maxConcurrentSimulations;
+      const results = [];
+      
+      for (let i = 0; i < selectedPersonas.length; i += maxConcurrent) {
+        const batch = selectedPersonas.slice(i, i + maxConcurrent);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (persona) => {
+            try {
+              // Run conversation simulation
+              const result = await conversationAgent.simulateConversation(persona, input);
+              
+              // Update UI with conversation progress
+              result.conversation_turns.forEach((turn, index) => {
+                setTimeout(() => {
+                  setActiveConversations(prev => 
+                    prev.map(conv => conv.personaId === persona.id ? 
+                      { 
+                        ...conv,
+                        currentStage: turn.stage,
+                        overallSentiment: turn.sentiment_score > 0.3 ? "positive" : 
+                                        turn.sentiment_score < -0.3 ? "negative" : "neutral",
+                        currentScore: Math.min(100, ((index + 1) / result.conversation_turns.length) * 100),
+                        status: index === result.conversation_turns.length - 1 ? "completed" : "running",
+                        stages: conv.stages.map((stage, idx) => ({
+                          ...stage,
+                          completed: idx <= index,
+                          current: idx === index,
+                          prompt: idx === index ? turn.prompt : stage.prompt,
+                          response: idx === index ? turn.response : stage.response
+                        }))
+                      } : conv
+                    )
+                  );
+                }, index * 1000); // Stagger updates
+              });
+
+              return {
+                personaId: persona.id,
+                sentiment: result.final_sentiment > 0.3 ? "positive" : 
+                         result.final_sentiment < -0.3 ? "negative" : "neutral",
+                score: result.insights.intent_score * 10,
+                keyQuote: result.conversation_turns[result.conversation_turns.length - 1]?.response || "",
+                objections: result.insights.barrier_codes,
+                reasoning: `Intent: ${result.insights.intent_score}/10, Focus: ${result.insights.regulatory_focus}`,
+                rawData: result
+              };
+            } catch (error) {
+              console.error(`Simulation error for ${persona.name}:`, error);
+              return null;
+            }
+          })
+        );
+        
+        results.push(...batchResults.filter(Boolean));
+      }
+
+      // Generate insights
+      const validResults = results.filter(r => r?.rawData);
+      if (validResults.length > 0) {
+        const insights = await insightAgent.generateInsights(validResults.map(r => r.rawData));
+        
+        // Create combined results for dashboard
+        const dashboardResults = results.map(result => ({
+          personaId: result.personaId,
+          simulationName: simName,
+          timestamp: new Date(),
+          sentiment: result.rawData.final_sentiment,
+          keyInsights: [
+            `Intent Score: ${result.rawData.insights.intent_score}/10`,
+            `Dominant Focus: ${result.rawData.insights.regulatory_focus}`,
+            `Key Heuristic: ${result.rawData.insights.dominant_heuristic}`
+          ],
+          objections: result.rawData.insights.barrier_codes,
+          selectedPersonaIds: selectedPersonas.map(p => p.id),
+          aggregatedInsights: insights
+        }));
+
+        if (onSimulationComplete) {
+          onSimulationComplete(dashboardResults);
+        }
+      }
+
+      setResults(results.filter(Boolean));
+      setViewMode("results");
+      
+      toast({
+        title: "Simulation completed",
+        description: `Successfully simulated ${results.filter(Boolean).length} personas.`,
+      });
+
+    } catch (error) {
+      console.error('Simulation error:', error);
+      toast({
+        title: "Simulation failed",
+        description: error instanceof Error ? error.message : "There was an error running the simulation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const simulateConversationFlow = async (conversations: PersonaConversation[]) => {
@@ -302,6 +448,8 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
 
   return (
     <div className="space-y-6">
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
+      
       {/* Navigation Tabs */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
         <TabsList className="grid w-full grid-cols-3">
@@ -317,9 +465,15 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
         <TabsContent value="setup">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="h-5 w-5" />
-                Simulation Studio
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Play className="h-5 w-5" />
+                  Simulation Studio
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -390,7 +544,7 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
                 Live Conversations - {simulationName}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Following psychology-grounded interview ontology across {CONVERSATION_STAGES.length} stages
+                Following psychology-grounded interview ontology across {SERVICE_STAGES.length} stages
               </p>
             </CardHeader>
             <CardContent>
@@ -401,7 +555,7 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
 
                   const currentStageIndex = conversation.stages.findIndex(s => s.current);
                   const completedStages = conversation.stages.filter(s => s.completed).length;
-                  const progressPercent = (completedStages / CONVERSATION_STAGES.length) * 100;
+                  const progressPercent = (completedStages / SERVICE_STAGES.length) * 100;
 
                   return (
                     <Card key={conversation.personaId} className="border-l-4 border-l-primary">
@@ -449,7 +603,7 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation }: Simulati
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span>Stage: {conversation.currentStage}</span>
-                              <span>{completedStages}/{CONVERSATION_STAGES.length} completed</span>
+                              <span>{completedStages}/{SERVICE_STAGES.length} completed</span>
                             </div>
                             <Progress value={progressPercent} className="h-2" />
                           </div>
