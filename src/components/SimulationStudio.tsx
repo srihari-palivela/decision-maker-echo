@@ -193,17 +193,6 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
   };
 
   const handleRunSimulation = async () => {
-    const settings = getSettings();
-    
-    if (!settings.openaiApiKey) {
-      toast({
-        title: "API key required",
-        description: "Please configure your OpenAI API key in Settings.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!input.trim() || selectedPersonas.length === 0) {
       toast({
         title: "Missing information",
@@ -237,101 +226,29 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
     setIsLoading(true);
 
     try {
-      // Create agents
-      const conversationAgent = new ConversationAgent(settings.openaiApiKey, settings.conversationModel);
-      const insightAgent = new InsightAgent(settings.openaiApiKey, settings.insightModel);
-
-      // Run simulations in parallel with concurrency limit
-      const maxConcurrent = settings.maxConcurrentSimulations;
-      const results = [];
-      
-      for (let i = 0; i < selectedPersonas.length; i += maxConcurrent) {
-        const batch = selectedPersonas.slice(i, i + maxConcurrent);
-        
-        const batchResults = await Promise.all(
-          batch.map(async (persona) => {
-            try {
-              // Run conversation simulation
-              const result = await conversationAgent.simulateConversation(persona, input);
-              
-              // Update UI with conversation progress
-              result.conversation_turns.forEach((turn, index) => {
-                setTimeout(() => {
-                  setActiveConversations(prev => 
-                    prev.map(conv => conv.personaId === persona.id ? 
-                      { 
-                        ...conv,
-                        currentStage: turn.stage,
-                        overallSentiment: turn.sentiment_score > 0.3 ? "positive" : 
-                                        turn.sentiment_score < -0.3 ? "negative" : "neutral",
-                        currentScore: Math.min(100, ((index + 1) / result.conversation_turns.length) * 100),
-                        status: index === result.conversation_turns.length - 1 ? "completed" : "running",
-                        stages: conv.stages.map((stage, idx) => ({
-                          ...stage,
-                          completed: idx <= index,
-                          current: idx === index,
-                          prompt: idx === index ? turn.prompt : stage.prompt,
-                          response: idx === index ? turn.response : stage.response
-                        }))
-                      } : conv
-                    )
-                  );
-                }, index * 1000); // Stagger updates
-              });
-
-              return {
-                personaId: persona.id,
-                sentiment: result.final_sentiment > 0.3 ? "positive" : 
-                         result.final_sentiment < -0.3 ? "negative" : "neutral",
-                score: result.insights.intent_score * 10,
-                keyQuote: result.conversation_turns[result.conversation_turns.length - 1]?.response || "",
-                objections: result.insights.barrier_codes,
-                reasoning: `Intent: ${result.insights.intent_score}/10, Focus: ${result.insights.regulatory_focus}`,
-                rawData: result
-              };
-            } catch (error) {
-              console.error(`Simulation error for ${persona.name}:`, error);
-              return null;
-            }
+      // Use the passed mock simulation function
+      if (onRunSimulation) {
+        await simulateConversationFlow(conversations);
+      } else {
+        // Fallback to mock simulation
+        const mockResults: SimulationResult[] = await Promise.all(
+          selectedPersonas.map(async (persona) => {
+            const sentiments: ("positive" | "negative" | "neutral")[] = ["positive", "negative", "neutral"];
+            const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
+            
+            return {
+              personaId: persona.id,
+              sentiment: randomSentiment,
+              score: Math.floor(Math.random() * 100),
+              keyQuote: "This is a mock simulation response.",
+              objections: ["Mock objection 1", "Mock objection 2"],
+              reasoning: `Mock reasoning for ${persona.name}`
+            };
           })
         );
-        
-        results.push(...batchResults.filter(Boolean));
+        setResults(mockResults);
+        setViewMode("results");
       }
-
-      // Generate insights
-      const validResults = results.filter(r => r?.rawData);
-      if (validResults.length > 0) {
-        const insights = await insightAgent.generateInsights(validResults.map(r => r.rawData));
-        
-        // Create combined results for dashboard
-        const dashboardResults = results.map(result => ({
-          personaId: result.personaId,
-          simulationName: simName,
-          timestamp: new Date(),
-          sentiment: result.rawData.final_sentiment,
-          keyInsights: [
-            `Intent Score: ${result.rawData.insights.intent_score}/10`,
-            `Dominant Focus: ${result.rawData.insights.regulatory_focus}`,
-            `Key Heuristic: ${result.rawData.insights.dominant_heuristic}`
-          ],
-          objections: result.rawData.insights.barrier_codes,
-          selectedPersonaIds: selectedPersonas.map(p => p.id),
-          aggregatedInsights: insights
-        }));
-
-        if (onSimulationComplete) {
-          onSimulationComplete(dashboardResults);
-        }
-      }
-
-      setResults(results.filter(Boolean));
-      setViewMode("results");
-      
-      toast({
-        title: "Simulation completed",
-        description: `Successfully simulated ${results.filter(Boolean).length} personas.`,
-      });
 
     } catch (error) {
       console.error('Simulation error:', error);
