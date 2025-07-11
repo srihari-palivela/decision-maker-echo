@@ -151,7 +151,7 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
           </div>
         </div>
 
-        {/* Right: Spider Charts */}
+        {/* Right: Charts and Key Values */}
         <div className="flex-1 grid grid-cols-3 gap-4">
           {/* Psychographic Chart */}
           <div className="space-y-2">
@@ -197,25 +197,42 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
             </div>
           </div>
 
-          {/* Firmographic Chart */}
+          {/* Firmographic Key Values */}
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-center">Firmographic</h4>
-            <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={firmographicData.slice(0, 6)}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
-                  <Radar
-                    name="Score"
-                    dataKey="value"
-                    stroke="hsl(var(--accent))"
-                    fill="hsl(var(--accent))"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+            <div className="h-32 space-y-1 overflow-y-auto">
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Size:</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {persona.firmographicProfile.companySizeEmployees.split('_')[1] || persona.firmographicProfile.companySizeEmployees}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Funding:</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {persona.firmographicProfile.fundingStage.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Payment:</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {persona.firmographicProfile.primaryPaymentMix.split('_')[0]}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Growth:</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {persona.firmographicProfile.growthTrajectory.split('_')[0]}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center p-1 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Tech:</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {persona.firmographicProfile.techStackMaturity.split('_')[0]}
+                  </Badge>
+                </div>
+              </div>
             </div>
           </div>
         </div>
