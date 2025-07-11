@@ -24,7 +24,10 @@ import {
   Bot,
   Pause,
   Settings,
-  Square
+  Square,
+  Upload,
+  FileText,
+  X
 } from "lucide-react";
 import { Persona } from "./PersonaCard";
 import { ConversationAgent, InsightAgent, CONVERSATION_STAGES as SERVICE_STAGES } from '@/services/agentService';
@@ -164,6 +167,8 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
   const [simulationName, setSimulationName] = useState("");
   const [viewMode, setViewMode] = useState<"setup" | "conversations" | "results">("setup");
   const [showSettings, setShowSettings] = useState(false);
+  const [uploadedDocument, setUploadedDocument] = useState<File | null>(null);
+  const [documentContent, setDocumentContent] = useState<string>("");
   const { toast } = useToast();
 
   // Load settings from localStorage
@@ -190,6 +195,54 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const typeNames = { feature: "Feature Test", pricing: "Pricing Test", message: "Message Test" };
     return `${typeNames[simulationType]} - ${timestamp}`;
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'text/plain' && 
+        file.type !== 'application/pdf' && 
+        !file.type.includes('document') &&
+        !file.type.includes('text')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a text, PDF, or document file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadedDocument(file);
+    
+    try {
+      let content = '';
+      if (file.type === 'text/plain') {
+        content = await file.text();
+      } else {
+        // For other file types, we'll just use the file name and indicate it's uploaded
+        content = `Document uploaded: ${file.name}\n\nThis document contains product information that will be used for the simulation.`;
+      }
+      setDocumentContent(content);
+      setInput(content); // Set the content as input for the simulation
+      
+      toast({
+        title: "Document uploaded",
+        description: `${file.name} has been processed successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "There was an error reading the file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeDocument = () => {
+    setUploadedDocument(null);
+    setDocumentContent("");
+    setInput("");
   };
 
   const handleRunSimulation = async () => {
@@ -395,25 +448,65 @@ export function SimulationStudio({ selectedPersonas, onRunSimulation, onSimulati
                 />
               </div>
 
-              <Tabs value={simulationType} onValueChange={(value) => setSimulationType(value as any)}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="feature">Feature</TabsTrigger>
-                  <TabsTrigger value="pricing">Pricing</TabsTrigger>
-                  <TabsTrigger value="message">Message</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {simulationPrompts[simulationType]}
-                </label>
-                <Textarea
-                  placeholder="Enter your scenario details..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  rows={4}
-                  className="resize-none"
-                />
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Product Document</label>
+                <p className="text-xs text-muted-foreground">
+                  Upload a document containing your product features, pricing, and messaging information.
+                </p>
+                
+                {!uploadedDocument ? (
+                  <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Drop your product document here or click to browse
+                    </p>
+                    <input
+                      type="file"
+                      accept=".txt,.pdf,.doc,.docx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="document-upload"
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => document.getElementById('document-upload')?.click()}
+                    >
+                      Choose File
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">{uploadedDocument.name}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {(uploadedDocument.size / 1024).toFixed(1)} KB
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={removeDocument}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {documentContent && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Document Preview</label>
+                        <Textarea
+                          value={documentContent.substring(0, 500) + (documentContent.length > 500 ? '...' : '')}
+                          readOnly
+                          rows={3}
+                          className="resize-none text-xs bg-muted/50"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between">
