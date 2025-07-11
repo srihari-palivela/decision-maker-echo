@@ -6,7 +6,7 @@ export const mockPersonas: Persona[] = [
     name: "HyperGrowth_D2C_Founder",
     title: "Founder-CEO",
     company: "D2C Growth Company",
-    bio: "Wants Magic Checkout-style uplift today; decides solo once dashboard shows >2 pp success-rate gain.",
+    bio: "A fast-moving entrepreneur focused on optimizing conversion rates and checkout experience. Makes quick decisions based on clear data showing improvement in success rates.",
     psychographicProfile: {
       dominantFear: "PaymentFailureLoss",
       primaryMotivation: "CheckoutConversionBoost",
@@ -45,7 +45,7 @@ export const mockPersonas: Persona[] = [
     name: "Bootstrapped_SaaS_CTO",
     title: "CTO",
     company: "SaaS Startup",
-    bio: "Will migrate if API work < 1 sprint **and** MDR beats current 2.1 % anchor.",
+    bio: "A technical leader who prioritizes cost efficiency and minimal integration complexity. Focuses on keeping development work manageable while reducing payment processing costs.",
     psychographicProfile: {
       dominantFear: "IntegrationOverhead",
       primaryMotivation: "MultiPaymentCoverage",
@@ -84,7 +84,7 @@ export const mockPersonas: Persona[] = [
     name: "RiskAverse_FinTech_CFO",
     title: "CFO",
     company: "FinTech NBFC",
-    bio: "Won't budge without PCI DSS Level-1 + RBI tokenisation attestation.",
+    bio: "A compliance-focused financial executive who prioritizes security and regulatory adherence above all else. Requires comprehensive security certifications and compliance documentation before any changes.",
     psychographicProfile: {
       dominantFear: "RegulatoryNonCompliance",
       primaryMotivation: "ComplianceAssurance",
@@ -123,7 +123,7 @@ export const mockPersonas: Persona[] = [
     name: "SpeedFirst_EdTech_COO",
     title: "COO",
     company: "EdTech Platform",
-    bio: "Wants T+0 settlements before next admission rush; OK to pilot during low season.",
+    bio: "An operations-focused leader who values fast cash flow and is willing to try new solutions during quieter periods. Driven by seasonal business cycles and immediate settlement needs.",
     psychographicProfile: {
       dominantFear: "CashFlowCrunch",
       primaryMotivation: "FasterSettlement",
@@ -162,7 +162,7 @@ export const mockPersonas: Persona[] = [
     name: "Gaming_CFO_CrossBorder",
     title: "CFO",
     company: "Gaming Company",
-    bio: "Needs FX routing with low chargeback ratio; runs 30-day sandbox before migration.",
+    bio: "A financial leader dealing with international transactions who is cautious about payment disputes. Prefers thorough testing periods before implementing new payment systems.",
     psychographicProfile: {
       dominantFear: "ChargebackPenalty",
       primaryMotivation: "CrossBorderExpansion",
@@ -201,7 +201,7 @@ export const mockPersonas: Persona[] = [
     name: "Mobility_Enterprise_VP_Payments",
     title: "VP Payments",
     company: "Enterprise Mobility",
-    bio: "Will replace legacy stack only if Razorpay eliminates three current PSPs and meets global PCI & SCA.",
+    bio: "An enterprise payments executive managing complex multi-vendor relationships. Seeks consolidation opportunities but requires strict compliance with international security standards.",
     psychographicProfile: {
       dominantFear: "IntegrationOverhead",
       primaryMotivation: "MultiPaymentCoverage",
@@ -240,7 +240,7 @@ export const mockPersonas: Persona[] = [
     name: "HealthTech_Compliance_Founder",
     title: "Founder-CEO",
     company: "HealthTech Startup",
-    bio: "Will switch only after Razorpay passes HIPAA-aligned data-flow review.",
+    bio: "A healthcare industry founder who operates under strict data protection requirements. Extremely cautious about any technology changes that could impact patient data security.",
     psychographicProfile: {
       dominantFear: "RegulatoryNonCompliance",
       primaryMotivation: "ComplianceAssurance",
@@ -279,7 +279,7 @@ export const mockPersonas: Persona[] = [
     name: "GlobalSeed_SaaS_Founder",
     title: "Founder-CEO",
     company: "Global SaaS Startup",
-    bio: "Needs Capital line + FX support; happy to beta-test new APIs.",
+    bio: "An innovative global startup founder who values working capital access and international payment capabilities. Open to trying new technologies and early-stage features.",
     psychographicProfile: {
       dominantFear: "CashFlowCrunch",
       primaryMotivation: "WorkingCapitalAccess",
@@ -318,7 +318,7 @@ export const mockPersonas: Persona[] = [
     name: "SeriesC_D2C_CFO",
     title: "CFO",
     company: "Series C D2C Company",
-    bio: "Benchmarks MDR every quarter; needs >10 bps savings to justify switch.",
+    bio: "A cost-conscious financial executive who regularly reviews payment processing expenses. Requires significant cost savings to justify changing established payment systems.",
     psychographicProfile: {
       dominantFear: "LossAversionHigh",
       primaryMotivation: "CostEfficiency",
@@ -357,7 +357,7 @@ export const mockPersonas: Persona[] = [
     name: "NBFC_HighRisk_COO",
     title: "COO",
     company: "NBFC Enterprise",
-    bio: "Experiments with BNPL & card-on-UPI despite dispute risk, if conversion lifts justify.",
+    bio: "A risk-tolerant operations leader willing to try innovative payment methods if they improve conversion rates. Balances potential disputes against revenue opportunities.",
     psychographicProfile: {
       dominantFear: "ChargebackPenalty",
       primaryMotivation: "CheckoutConversionBoost",
@@ -396,7 +396,7 @@ export const mockPersonas: Persona[] = [
     name: "CrossBorder_Aggregator_CFO",
     title: "CFO",
     company: "Cross-Border Travel Platform",
-    bio: "Needs FX settlement + PSD2-style SCA; weighs brand trust heavily.",
+    bio: "A financial executive handling international business who values brand reputation and regulatory compliance. Seeks secure cross-border payment solutions with strong authentication.",
     psychographicProfile: {
       dominantFear: "BrandReputationDamage",
       primaryMotivation: "CrossBorderExpansion",
@@ -435,7 +435,7 @@ export const mockPersonas: Persona[] = [
     name: "Tier2_Retail_MSME_Owner",
     title: "Owner-Operator",
     company: "Tier 2 Retail MSME",
-    bio: "Looks for UPI soundbox + instant COD reconciliation to protect thin margins.",
+    bio: "A small business owner operating on tight margins who needs simple, cost-effective payment solutions. Focuses on tools that help manage cash-on-delivery and digital payments efficiently.",
     psychographicProfile: {
       dominantFear: "PaymentFailureLoss",
       primaryMotivation: "FasterSettlement",
@@ -474,7 +474,7 @@ export const mockPersonas: Persona[] = [
     name: "Subscription_SaaS_CFO",
     title: "CFO",
     company: "Subscription SaaS Platform",
-    bio: "Evaluates UPI AutoPay to reduce card decline churn; needs API parity with Stripe Billing.",
+    bio: "A subscription business executive focused on reducing payment failures and customer churn. Seeks automated payment solutions with robust recurring billing capabilities.",
     psychographicProfile: {
       dominantFear: "IntegrationOverhead",
       primaryMotivation: "ComplianceAssurance",
@@ -513,7 +513,7 @@ export const mockPersonas: Persona[] = [
     name: "InHouse_Payments_VP",
     title: "VP Engineering",
     company: "Technology Platform",
-    bio: "Will outsource only niche add-ons (e.g., Magic Checkout) that beat internal SLA.",
+    bio: "A technical executive who prefers building solutions in-house but is open to specialized external tools that significantly outperform internal capabilities.",
     psychographicProfile: {
       dominantFear: "AnchoringOnFees",
       primaryMotivation: "MultiPaymentCoverage",
@@ -552,7 +552,7 @@ export const mockPersonas: Persona[] = [
     name: "FestivalSpike_D2C_Founder",
     title: "Founder-Owner",
     company: "Festival D2C Brand",
-    bio: "Seeks pre-Diwali working-capital line and surge-proof checkout.",
+    bio: "A seasonal business owner who needs flexible working capital and payment systems that can handle traffic spikes during festival seasons and high-demand periods.",
     psychographicProfile: {
       dominantFear: "CashFlowCrunch",
       primaryMotivation: "WorkingCapitalAccess",
@@ -591,7 +591,7 @@ export const mockPersonas: Persona[] = [
     name: "Plateau_EdTech_FinanceHead",
     title: "Head of Finance",
     company: "EdTech Platform",
-    bio: "Negotiates MDR down to protect margins amid slower enrollments.",
+    bio: "A finance executive dealing with growth challenges who focuses aggressively on cost reduction and margin protection. Prioritizes negotiations to reduce payment processing expenses.",
     psychographicProfile: {
       dominantFear: "LossAversionHigh",
       primaryMotivation: "CostEfficiency",
