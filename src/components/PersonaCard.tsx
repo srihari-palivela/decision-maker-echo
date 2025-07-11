@@ -161,7 +161,7 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
                 <RadarChart data={psychographicData.slice(0, 6)}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
+                  <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
                   <Radar
                     name="Score"
                     dataKey="value"
@@ -169,6 +169,7 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
                     fill="hsl(var(--primary))"
                     fillOpacity={0.3}
                     strokeWidth={2}
+                    label={{ fontSize: 8, fill: "hsl(var(--primary))" }}
                   />
                 </RadarChart>
               </ResponsiveContainer>
@@ -183,14 +184,15 @@ export function PersonaCard({ persona, isSelected, onSelect, onViewDetails, onEd
                 <RadarChart data={decisionData.slice(0, 6)}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={false} />
+                  <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 6 }} />
                   <Radar
                     name="Score"
                     dataKey="value"
-                    stroke="hsl(var(--secondary))"
-                    fill="hsl(var(--secondary))"
+                    stroke="hsl(262 83% 70%)"
+                    fill="hsl(262 83% 70%)"
                     fillOpacity={0.3}
                     strokeWidth={2}
+                    label={{ fontSize: 8, fill: "hsl(262 83% 70%)" }}
                   />
                 </RadarChart>
               </ResponsiveContainer>

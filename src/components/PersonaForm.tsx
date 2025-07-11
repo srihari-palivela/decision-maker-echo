@@ -229,8 +229,8 @@ export function PersonaForm({ persona, onSave, onCancel }: PersonaFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden my-4">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{persona ? "Edit Persona" : "Create New Persona"}</CardTitle>
           <Button variant="ghost" size="sm" onClick={onCancel}>
